@@ -77,7 +77,7 @@ node uninstall-host.js
 
 ## Configure Repository Mapping
 
-Open the extension options page and add a mapping:
+Open the extension options page and either add a mapping manually:
 
 ```text
 github.com/org/repo -> /absolute/path/to/local/repo
@@ -88,6 +88,12 @@ Windows example:
 ```text
 github.com/org/repo -> C:\Users\me\projects\repo
 ```
+
+Or add an absolute path under **Repository scan folders** and click **Scan**. Scanning is
+manual and limited to the selected folder. The native host reads local Git metadata and imports
+repositories that have supported GitHub remotes.
+
+The MVP does not include a system folder picker. Enter the absolute folder path manually.
 
 VS Code command defaults to:
 

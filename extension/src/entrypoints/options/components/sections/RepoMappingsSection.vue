@@ -1,12 +1,12 @@
 <template>
   <section class="repo-mappings">
     <div class="repo-mappings__header">
-      <h2 class="repo-mappings__title">Repo Mappings</h2>
-      <p class="repo-mappings__text">Map `github.com/owner/repo` to a local repo path.</p>
+      <h2 class="repo-mappings__title">Repository mappings</h2>
+      <p class="repo-mappings__text">Map github.com/owner/repo to a local repository path.</p>
     </div>
 
     <label class="repo-mappings__field">
-      <span class="repo-mappings__label">Repo key</span>
+      <span class="repo-mappings__label">Repository</span>
       <input
         v-model="repoKey"
         class="repo-mappings__input"
@@ -40,22 +40,18 @@
       <p v-if="isLoading" class="repo-mappings__empty">Loading mappings...</p>
       <p v-else-if="mappings.length === 0" class="repo-mappings__empty">No mappings saved yet.</p>
 
-      <div
-        v-for="mapping in mappings"
-        v-else
-        :key="mapping.repoKey"
-        class="repo-mappings__list-item"
-      >
+      <div v-for="mapping in mappings" v-else :key="mapping.id" class="repo-mappings__list-item">
         <div class="repo-mappings__mapping">
-          <p class="repo-mappings__mapping-key">{{ mapping.repoKey }}</p>
-          <p class="repo-mappings__mapping-path">{{ mapping.localPath }}</p>
+          <p class="repo-mappings__mapping-key">{{ getRepositoryKey(mapping) }}</p>
+          <p class="repo-mappings__mapping-path">{{ mapping.repoPath }}</p>
+          <span class="repo-mappings__source">{{ mapping.source }}</span>
         </div>
 
         <button
           class="repo-mappings__secondary-button"
           type="button"
           :disabled="isSaving"
-          @click="removeMapping(mapping.repoKey)"
+          @click="removeMapping(mapping.id)"
         >
           Delete
         </button>
@@ -66,7 +62,12 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
-import { getSettings, saveSettings } from '@/settings/settings.storage'
+import {
+  deleteRepositoryMapping,
+  saveManualMapping,
+} from '@/features/repository-mappings/repository-mappings'
+import { getRepositoryKey } from '@/settings/mappings/mappings'
+import { getSettings } from '@/settings/settings.storage'
 import type { ExtensionSettings } from '@/settings/settings.types'
 
 const settings = ref<ExtensionSettings | null>(null)
@@ -76,70 +77,60 @@ const status = ref('')
 const isLoading = ref(true)
 const isSaving = ref(false)
 
-const mappings = computed(() => {
-  if (!settings.value) return []
-
-  return Object.entries(settings.value.mappings)
-    .map(([repoKey, localPath]) => ({ repoKey, localPath }))
-    .sort((left, right) => left.repoKey.localeCompare(right.repoKey))
-})
+const mappings = computed(() =>
+  [...(settings.value?.mappings ?? [])].sort((left, right) =>
+    getRepositoryKey(left).localeCompare(getRepositoryKey(right)),
+  ),
+)
 
 const loadMappings = async () => {
   isLoading.value = true
-
   try {
     settings.value = await getSettings()
-  } catch (error) {
-    status.value = error instanceof Error ? error.message : 'Failed to load mappings.'
+  } catch {
+    status.value = 'Failed to load mappings.'
   } finally {
     isLoading.value = false
   }
 }
 
 const saveMapping = async () => {
-  const nextRepoKey = repoKey.value.trim()
+  const match = repoKey.value.trim().match(/^github\.com\/([^/]+)\/([^/]+)$/i)
   const nextLocalPath = localPath.value.trim()
 
-  if (!nextRepoKey || !nextLocalPath) {
-    status.value = 'Repo key and local path are required.'
+  if (!match?.[1] || !match[2] || !nextLocalPath) {
+    status.value = 'Enter github.com/owner/repo and a local path.'
     return
   }
 
   isSaving.value = true
   status.value = ''
-
   try {
-    const current = await getSettings()
-    await saveSettings({
-      ...current,
-      mappings: { ...current.mappings, [nextRepoKey]: nextLocalPath },
+    await saveManualMapping({
+      owner: match[1],
+      repo: match[2],
+      repoPath: nextLocalPath,
     })
     await loadMappings()
-
     repoKey.value = ''
     localPath.value = ''
     status.value = 'Mapping saved.'
-  } catch (error) {
-    status.value = error instanceof Error ? error.message : 'Failed to save mapping.'
+  } catch {
+    status.value = 'Failed to save mapping.'
   } finally {
     isSaving.value = false
   }
 }
 
-const removeMapping = async (repoKeyToDelete: string) => {
+const removeMapping = async (mappingId: string) => {
   isSaving.value = true
   status.value = ''
-
   try {
-    const current = await getSettings()
-    const nextMappings = { ...current.mappings }
-    delete nextMappings[repoKeyToDelete]
-
-    await saveSettings({ ...current, mappings: nextMappings })
+    await deleteRepositoryMapping(mappingId)
     await loadMappings()
     status.value = 'Mapping deleted.'
-  } catch (error) {
-    status.value = error instanceof Error ? error.message : 'Failed to delete mapping.'
+  } catch {
+    status.value = 'Failed to delete mapping.'
   } finally {
     isSaving.value = false
   }
@@ -160,18 +151,29 @@ onMounted(() => {
   border-radius: 12px;
   background: #ffffff;
 
-  &__header {
+  &__header,
+  &__mapping {
     display: grid;
     gap: 4px;
   }
 
-  &__title {
+  &__title,
+  &__text,
+  &__status,
+  &__empty,
+  &__mapping-key,
+  &__mapping-path {
     margin: 0;
+  }
+
+  &__title {
     font-size: 18px;
   }
 
-  &__text {
-    margin: 0;
+  &__text,
+  &__label,
+  &__empty,
+  &__mapping-path {
     color: #59636e;
     font-size: 14px;
   }
@@ -181,19 +183,12 @@ onMounted(() => {
     gap: 6px;
   }
 
-  &__label {
-    color: #59636e;
-    font-size: 13px;
-  }
-
   &__input {
     box-sizing: border-box;
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #d0d7de;
     border-radius: 8px;
-    background: #ffffff;
-    color: #1f2328;
     font: inherit;
   }
 
@@ -220,24 +215,11 @@ onMounted(() => {
 
   &__secondary-button {
     background: #f6f8fa;
-    color: #1f2328;
-  }
-
-  &__status {
-    margin: 0;
-    font-size: 14px;
-    word-break: break-word;
   }
 
   &__list {
     display: grid;
     gap: 10px;
-  }
-
-  &__empty {
-    margin: 0;
-    color: #59636e;
-    font-size: 14px;
   }
 
   &__list-item {
@@ -251,25 +233,22 @@ onMounted(() => {
     background: #f6f8fa;
   }
 
-  &__mapping {
-    display: grid;
-    gap: 4px;
-    min-width: 0;
-  }
-
-  &__mapping-key,
-  &__mapping-path {
-    margin: 0;
-    word-break: break-word;
-  }
-
   &__mapping-key {
     font-weight: 600;
   }
 
+  &__mapping-key,
   &__mapping-path {
-    color: #59636e;
-    font-size: 14px;
+    word-break: break-word;
+  }
+
+  &__source {
+    justify-self: start;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #ddf4ff;
+    color: #0969da;
+    font-size: 12px;
   }
 }
 </style>

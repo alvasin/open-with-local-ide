@@ -2,9 +2,10 @@
   <main class="options">
     <header class="options__header">
       <h1 class="options__title">Open With Local IDE Settings</h1>
-      <p class="options__subtitle">Configure repo mappings and VS Code command.</p>
+      <p class="options__subtitle">Discover repositories and configure VS Code.</p>
     </header>
 
+    <RepositoryScanFoldersSection />
     <RepoMappingsSection />
     <IdeSettingsSection />
   </main>
@@ -13,6 +14,7 @@
 <script lang="ts" setup>
 import IdeSettingsSection from './components/sections/IdeSettingsSection.vue'
 import RepoMappingsSection from './components/sections/RepoMappingsSection.vue'
+import RepositoryScanFoldersSection from './components/sections/RepositoryScanFoldersSection.vue'
 </script>
 
 <style lang="scss" scoped>
