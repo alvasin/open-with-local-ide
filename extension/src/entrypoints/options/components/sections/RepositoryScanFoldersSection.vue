@@ -131,7 +131,7 @@ import {
   replaceMappingWithDiscovered,
   scanRepositoryFolder,
   type RepositoryScanConflict,
-} from '@/features/repository-scanning/repository-scanning'
+} from '@/features/repository-scanning'
 import { getRepositoryKey } from '@/settings/mappings/mappings'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 import { getSettings } from '@/settings/settings.storage'

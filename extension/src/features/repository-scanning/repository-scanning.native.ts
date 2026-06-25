@@ -3,13 +3,13 @@ import type {
   ScanRepositoriesSuccessResponse,
   ScanSkippedReason,
 } from '@native-protocol'
-import { sendNativeMessage } from '@/native-messaging/native-client'
-import { ExtensionNativeErrorCode } from '@/native-messaging/native-error.types'
 import {
+  ExtensionNativeErrorCode,
   isNativeHostErrorResponseLike,
   readNativeHostDetails,
+  sendNativeMessage,
   type NativeHostErrorResponseLike,
-} from '@/native-messaging/native-response'
+} from '@/native-messaging'
 import { isRecord } from '@/shared/record/record.guard'
 
 const SCAN_SKIPPED_REASONS = new Set<ScanSkippedReason>([

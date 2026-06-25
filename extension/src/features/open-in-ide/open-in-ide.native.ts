@@ -1,11 +1,11 @@
 import type { OpenInIdeRequest } from '@native-protocol'
 import type { OpenInIdeResponse } from './open-in-ide.types'
-import { sendNativeMessage } from '@/native-messaging/native-client'
-import { ExtensionNativeErrorCode } from '@/native-messaging/native-error.types'
 import {
+  ExtensionNativeErrorCode,
   isNativeHostErrorResponseLike,
   readNativeHostDetails,
-} from '@/native-messaging/native-response'
+  sendNativeMessage,
+} from '@/native-messaging'
 import { isRecord } from '@/shared/record/record.guard'
 
 export const openInIde = async (request: OpenInIdeRequest): Promise<OpenInIdeResponse> => {

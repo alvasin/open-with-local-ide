@@ -3,8 +3,8 @@ import {
   createNativeHostErrorResponse,
   type NativeHostResponse,
 } from './native-message.response.js'
-import { handleOpenInIdeMessage } from '../features/open-in-ide/open-in-ide.handler.js'
-import { scanRepositories } from '../features/repository-scanning/scan-repositories.handler.js'
+import { handleOpenInIdeMessage } from '../features/open-in-ide/index.js'
+import { scanRepositories } from '../features/repository-scanning/index.js'
 
 const readAction = (message: unknown): string | undefined => {
   if (!message || typeof message !== 'object' || !('action' in message)) return undefined

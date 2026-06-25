@@ -3,7 +3,7 @@ import type {
   NativeHostErrorDetails,
   OpenInIdeRequest,
 } from '@native-protocol'
-import type { ExtensionNativeErrorCode } from '@/native-messaging/native-error.types'
+import type { ExtensionNativeErrorCode } from '@/native-messaging'
 
 export type OpenInIdeErrorCode = NativeHostErrorCode | ExtensionNativeErrorCode
 

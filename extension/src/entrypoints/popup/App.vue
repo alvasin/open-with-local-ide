@@ -32,11 +32,9 @@ import {
   getIdeLabel,
   getMissingRepoMappingMessage,
   getNativeHostUiMessage,
-} from '@/features/open-in-ide/open-in-ide'
-import type {
-  OpenInIdeErrorCode,
-  OpenInIdeResponse,
-} from '@/features/open-in-ide/open-in-ide.types'
+  type OpenInIdeErrorCode,
+  type OpenInIdeResponse,
+} from '@/features/open-in-ide'
 import type { ParsedRemoteLocation } from '@/providers/types'
 import { isSameRepository } from '@/settings/mappings/mappings'
 import { getSettings } from '@/settings/settings.storage'
