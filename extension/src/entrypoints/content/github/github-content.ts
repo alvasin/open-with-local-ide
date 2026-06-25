@@ -1,11 +1,11 @@
 import { removeInjectedGitHubButtons, syncInjectedGitHubButton } from './github-button'
-import { parseCurrentGitHubFile } from './github-current-file'
+import { parseCurrentGitHubLocation } from './github-current-location'
 import { listenGitHubPageChanges } from './github-navigation'
 
 const syncCurrentGitHubPage = async () => {
-  const currentFile = parseCurrentGitHubFile()
+  const currentLocation = parseCurrentGitHubLocation()
 
-  if (!currentFile) {
+  if (!currentLocation) {
     removeInjectedGitHubButtons()
     return
   }

@@ -1,15 +1,14 @@
-import type { NativeOpenFileRequest, NativeOpenFileResponse } from '@/features/open-file/types'
-import { ExtensionNativeErrorCode } from '@/features/open-file/types'
+import type { OpenInIdeRequest } from '@native-protocol'
+import type { OpenInIdeResponse } from './open-in-ide.types'
 import { sendNativeMessage } from '@/native-messaging/native-client'
+import { ExtensionNativeErrorCode } from '@/native-messaging/native-error.types'
 import {
   isNativeHostErrorResponseLike,
   readNativeHostDetails,
 } from '@/native-messaging/native-response'
 import { isRecord } from '@/shared/record/record.guard'
 
-export const openFileInIde = async (
-  request: NativeOpenFileRequest,
-): Promise<NativeOpenFileResponse> => {
+export const openInIde = async (request: OpenInIdeRequest): Promise<OpenInIdeResponse> => {
   try {
     const response = await sendNativeMessage(request)
 

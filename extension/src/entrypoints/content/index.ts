@@ -1,10 +1,10 @@
 import { syncGitHubContent } from './github/github-content'
-import { listenCurrentFileMessages } from './messages/content-message.listener'
+import { listenCurrentLocationMessages } from './messages/content-message.listener'
 
 export default defineContentScript({
   matches: ['https://github.com/*'],
   main() {
-    listenCurrentFileMessages()
+    listenCurrentLocationMessages()
     syncGitHubContent()
   },
 })

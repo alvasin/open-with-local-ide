@@ -1,5 +1,5 @@
 import type { DiscoveredRepository, ScanSkippedEntry } from '@native-protocol'
-import { scanRepositoriesInHost } from '@/native-messaging/repository-scanning.native'
+import { scanRepositoriesInHost } from './repository-scanning.native'
 import { isSameRepository } from '@/settings/mappings/mappings'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 import type { RepositoryScanFolder } from '@/settings/repository-scanning/repository-scanning.types'
