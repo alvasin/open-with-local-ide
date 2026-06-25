@@ -2,11 +2,11 @@ import { spawn } from 'node:child_process'
 import { NativeHostErrorCode } from '#native-protocol'
 import { resolveIdeCommand } from './ide-command-resolver.js'
 import { IDE_ADAPTERS } from './ide-adapters.registry.js'
-import type { ValidOpenFileRequest } from '../../features/open-file/open-file.types.js'
+import type { ValidOpenInIdeRequest } from '../../features/open-in-ide/open-in-ide.types.js'
 import { log, logError } from '../logging/logger.js'
 import { NativeHostError } from '../../shared/errors/native-host.error.js'
 
-export const openFileInIde = async (request: ValidOpenFileRequest): Promise<void> => {
+export const launchTargetInIde = async (request: ValidOpenInIdeRequest): Promise<void> => {
   const adapter = IDE_ADAPTERS[request.ide]
   if (!adapter) {
     throw new NativeHostError({
@@ -18,12 +18,14 @@ export const openFileInIde = async (request: ValidOpenFileRequest): Promise<void
   const commandResolution = resolveIdeCommand(request.ide, adapter)
   const command = commandResolution.command
 
-  const buildArgs = request.openMode === 'file' ? adapter.buildFileArgs : adapter.buildWorkspaceArgs
-  const args = buildArgs({
-    resolvedPath: request.resolvedPath,
-    repoPath: request.repoPath,
-    line: request.line,
-  })
+  const args =
+    request.target.kind === 'repository'
+      ? adapter.buildRepositoryArgs({ repoPath: request.repoPath })
+      : adapter.buildFileInRepositoryArgs({
+          resolvedPath: request.target.resolvedPath,
+          repoPath: request.repoPath,
+          line: request.target.line,
+        })
 
   log({
     event: 'ide.spawn',

@@ -1,5 +1,5 @@
-import { openCurrentGitHubFile } from '../open-file/open-current-github-file'
-import { getIdeLabel } from '@/features/open-file/openFile'
+import { openCurrentGitHubFile } from '../open-in-ide/open-current-github-file'
+import { getIdeLabel } from '@/features/open-in-ide/open-in-ide'
 import { getSettings } from '@/settings/settings.storage'
 
 const OPEN_BUTTON_ATTRIBUTE = 'data-open-with-local-ide-button'

@@ -3,8 +3,8 @@ import type {
   ScanRepositoriesSuccessResponse,
   ScanSkippedReason,
 } from '@native-protocol'
-import { ExtensionNativeErrorCode } from '@/features/open-file/types'
 import { sendNativeMessage } from '@/native-messaging/native-client'
+import { ExtensionNativeErrorCode } from '@/native-messaging/native-error.types'
 import {
   isNativeHostErrorResponseLike,
   readNativeHostDetails,

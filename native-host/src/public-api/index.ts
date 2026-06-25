@@ -4,6 +4,7 @@ export {
   type NativeHostErrorDetails,
   type NativeHostErrorDetailsByCode,
 } from './native-protocol/errors.js'
+export type { OpenInIdeRequest, OpenInIdeTarget } from './native-protocol/open-in-ide.js'
 export type {
   DiscoveredRepository,
   ScanRepositoriesRequest,

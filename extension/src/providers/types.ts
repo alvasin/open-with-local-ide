@@ -2,7 +2,7 @@ export type GitProviderId =
   // TODO: add gitlab and bitbucket in future phases.
   'github'
 
-export interface ParsedRemoteFile {
+export interface ParsedRemoteLocation {
   provider: GitProviderId
   host: string
   owner: string

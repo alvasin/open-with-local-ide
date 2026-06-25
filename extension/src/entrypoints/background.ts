@@ -1,26 +1,23 @@
-import type { NativeOpenFileRequest, NativeOpenFileResponse } from '@/features/open-file/types'
-import { openFileInIde } from '@/native-messaging/open-file.native'
+import type { OpenInIdeRequest } from '@native-protocol'
+import { openInIde } from '@/features/open-in-ide/open-in-ide.native'
+import type { OpenInIdeResponse } from '@/features/open-in-ide/open-in-ide.types'
 import { ExtensionMessageType } from '@/shared/extension/extension.enum'
 import { isRecord } from '@/shared/record/record.guard'
 
-type OpenRemoteFileMessage = {
-  type: ExtensionMessageType.OpenRemoteFile
-  request: NativeOpenFileRequest
+type OpenInIdeMessage = {
+  type: ExtensionMessageType.OpenInIde
+  request: OpenInIdeRequest
 }
 
-const isOpenRemoteFileMessage = (message: unknown): message is OpenRemoteFileMessage =>
-  isRecord(message) &&
-  message.type === ExtensionMessageType.OpenRemoteFile &&
-  isRecord(message.request)
+const isOpenInIdeMessage = (message: unknown): message is OpenInIdeMessage =>
+  isRecord(message) && message.type === ExtensionMessageType.OpenInIde && isRecord(message.request)
 
 // TODO: Вынести работу с service воркерами chrome в один централизованный файл-обертку.
 
 export default defineBackground(() => {
-  browser.runtime.onMessage.addListener(
-    async (message): Promise<NativeOpenFileResponse | undefined> => {
-      if (!isOpenRemoteFileMessage(message)) return
+  browser.runtime.onMessage.addListener(async (message): Promise<OpenInIdeResponse | undefined> => {
+    if (!isOpenInIdeMessage(message)) return
 
-      return openFileInIde(message.request)
-    },
-  )
+    return openInIde(message.request)
+  })
 })
