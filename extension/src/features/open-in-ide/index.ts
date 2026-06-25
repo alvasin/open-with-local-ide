@@ -1,10 +1,11 @@
 import { NativeHostErrorCode, type OpenInIdeRequest } from '@native-protocol'
 import type { CreateOpenInIdeRequestResult, OpenInIdeResponse } from './open-in-ide.types'
-import { ExtensionNativeErrorCode } from '@/native-messaging/native-error.types'
+import { ExtensionNativeErrorCode } from '@/native-messaging'
 import type { ParsedRemoteLocation } from '@/providers/types'
 import { isSameRepository } from '@/settings/mappings/mappings'
 import type { ExtensionSettings } from '@/settings/settings.types'
 import type { IdeId } from '@/shared/ide/ide.types'
+export { openInIde } from './open-in-ide.native'
 
 const IDE_LABELS: Record<IdeId, string> = {
   vscode: 'VS Code',
@@ -100,3 +101,9 @@ export const createOpenRepositoryRequest = (
   createRequest(remoteRepository, settings, {
     kind: 'repository',
   })
+
+export type {
+  CreateOpenInIdeRequestResult,
+  OpenInIdeErrorCode,
+  OpenInIdeResponse,
+} from './open-in-ide.types'

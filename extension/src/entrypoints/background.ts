@@ -1,6 +1,5 @@
 import type { OpenInIdeRequest } from '@native-protocol'
-import { openInIde } from '@/features/open-in-ide/open-in-ide.native'
-import type { OpenInIdeResponse } from '@/features/open-in-ide/open-in-ide.types'
+import { openInIde, type OpenInIdeResponse } from '@/features/open-in-ide'
 import { ExtensionMessageType } from '@/shared/extension/extension.enum'
 import { isRecord } from '@/shared/record/record.guard'
 

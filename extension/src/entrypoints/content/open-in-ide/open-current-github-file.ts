@@ -1,10 +1,10 @@
-import { parseCurrentGitHubLocation } from '../github/github-current-location'
+import { parseCurrentGitHubLocation } from '../github'
 import {
   createOpenFileRequest,
   getMissingRepoMappingMessage,
   getNativeHostUiMessage,
-} from '@/features/open-in-ide/open-in-ide'
-import type { OpenInIdeResponse } from '@/features/open-in-ide/open-in-ide.types'
+  type OpenInIdeResponse,
+} from '@/features/open-in-ide'
 import { getSettings } from '@/settings/settings.storage'
 import { ExtensionMessageType } from '@/shared/extension/extension.enum'
 import { isRecord } from '@/shared/record/record.guard'

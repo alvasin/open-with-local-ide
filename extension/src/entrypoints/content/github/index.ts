@@ -2,7 +2,11 @@ import { removeInjectedGitHubButtons, syncInjectedGitHubButton } from './github-
 import { parseCurrentGitHubLocation } from './github-current-location'
 import { listenGitHubPageChanges } from './github-navigation'
 
-const syncCurrentGitHubPage = async () => {
+type OpenGitHubFileHandler = (button: HTMLButtonElement) => Promise<void>
+
+export { parseCurrentGitHubLocation }
+
+const syncCurrentGitHubPage = async (openGitHubFile: OpenGitHubFileHandler) => {
   const currentLocation = parseCurrentGitHubLocation()
 
   if (!currentLocation) {
@@ -10,11 +14,11 @@ const syncCurrentGitHubPage = async () => {
     return
   }
 
-  await syncInjectedGitHubButton()
+  await syncInjectedGitHubButton(openGitHubFile)
 }
 
-export const syncGitHubContent = () => {
+export const syncGitHubContent = (openGitHubFile: OpenGitHubFileHandler) => {
   listenGitHubPageChanges(() => {
-    void syncCurrentGitHubPage()
+    void syncCurrentGitHubPage(openGitHubFile)
   })
 }
