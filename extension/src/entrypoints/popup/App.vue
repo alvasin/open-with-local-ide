@@ -34,6 +34,7 @@ import {
 } from '@/features/open-file/openFile'
 import type { NativeOpenFileErrorCode, NativeOpenFileResponse } from '@/features/open-file/types'
 import type { ParsedRemoteFile } from '@/providers/types'
+import { isSameRepository } from '@/settings/mappings/mappings'
 import { getSettings } from '@/settings/settings.storage'
 import type { ExtensionSettings } from '@/settings/settings.types'
 import { ExtensionMessageType } from '@/shared/extension/extension.enum'
@@ -86,10 +87,19 @@ const loadPopupState = async () => {
       return
     }
 
-    currentFile.value = fileResponse.file
+    const file = fileResponse.file
+    currentFile.value = file
 
-    if (!loadedSettings.mappings[fileResponse.file.repoKey]) {
-      status.value = getMissingRepoMappingMessage(fileResponse.file.repoKey)
+    if (
+      !loadedSettings.mappings.some((mapping) =>
+        isSameRepository(mapping, {
+          provider: file.provider,
+          owner: file.owner,
+          repo: file.repo,
+        }),
+      )
+    ) {
+      status.value = getMissingRepoMappingMessage(file.repoKey)
       shouldShowOpenOptions.value = true
     }
   } catch (error) {

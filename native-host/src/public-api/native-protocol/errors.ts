@@ -2,6 +2,11 @@ export enum NativeHostErrorCode {
   InvalidMessage = 'INVALID_MESSAGE',
   MessageTooLarge = 'MESSAGE_TOO_LARGE',
   UnsupportedAction = 'UNSUPPORTED_ACTION',
+  InvalidRootPath = 'INVALID_ROOT_PATH',
+  RootPathNotAbsolute = 'ROOT_PATH_NOT_ABSOLUTE',
+  RootPathNotDirectory = 'ROOT_PATH_NOT_DIRECTORY',
+  RootPathNotAllowed = 'ROOT_PATH_NOT_ALLOWED',
+  ScanFailed = 'SCAN_FAILED',
   RepoPathMustBeAbsolute = 'REPO_PATH_MUST_BE_ABSOLUTE',
   RepoPathNotFound = 'REPO_PATH_NOT_FOUND',
   RepoPathNotDirectory = 'REPO_PATH_NOT_DIRECTORY',
@@ -18,6 +23,11 @@ export type NativeHostErrorDetailsByCode = {
   [NativeHostErrorCode.InvalidMessage]: undefined
   [NativeHostErrorCode.MessageTooLarge]: undefined
   [NativeHostErrorCode.UnsupportedAction]: { action?: string } | undefined
+  [NativeHostErrorCode.InvalidRootPath]: { rootPath?: string } | undefined
+  [NativeHostErrorCode.RootPathNotAbsolute]: { rootPath: string }
+  [NativeHostErrorCode.RootPathNotDirectory]: { rootPath: string }
+  [NativeHostErrorCode.RootPathNotAllowed]: { rootPath: string }
+  [NativeHostErrorCode.ScanFailed]: undefined
   [NativeHostErrorCode.RepoPathMustBeAbsolute]: { repoPath: string }
   [NativeHostErrorCode.RepoPathNotFound]: { repoPath: string }
   [NativeHostErrorCode.RepoPathNotDirectory]: { repoPath: string }

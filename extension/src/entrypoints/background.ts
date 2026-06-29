@@ -1,5 +1,5 @@
 import type { NativeOpenFileRequest, NativeOpenFileResponse } from '@/features/open-file/types'
-import { openFileInIde } from '@/native'
+import { openFileInIde } from '@/native-messaging/open-file.native'
 import { ExtensionMessageType } from '@/shared/extension/extension.enum'
 import { isRecord } from '@/shared/record/record.guard'
 

@@ -1,4 +1,4 @@
-import { logError } from '../utils/logger.js'
+import { logError } from '../logging/logger.js'
 
 export const registerProcessErrorHandlers = () => {
   process.on('uncaughtException', (error) => {

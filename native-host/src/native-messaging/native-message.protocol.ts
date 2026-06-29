@@ -1,5 +1,6 @@
 import { NativeHostErrorCode } from '#native-protocol'
-import { NativeHostError, type NativeHostResponse } from './native-message.types.js'
+import type { NativeHostResponse } from './native-message.response.js'
+import { NativeHostError } from '../shared/errors/native-host.error.js'
 
 export const MAX_MESSAGE_BYTES = 1024 * 1024
 
