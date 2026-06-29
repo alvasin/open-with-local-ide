@@ -2,6 +2,7 @@ import { NativeHostErrorCode } from '@native-protocol'
 import type { CreateNativeOpenFileRequestResult, NativeOpenFileResponse, OpenMode } from './types'
 import { ExtensionNativeErrorCode } from './types'
 import type { ParsedRemoteFile } from '@/providers/types'
+import { isSameRepository } from '@/settings/mappings/mappings'
 import type { ExtensionSettings } from '@/settings/settings.types'
 import type { IdeId } from '@/shared/ide/ide.types'
 
@@ -33,6 +34,11 @@ export const getNativeHostUiMessage = (response: NativeOpenFileResponse): string
       return 'IDE executable was not found.'
     case NativeHostErrorCode.IdeLaunchFailed:
       return 'Failed to launch IDE.'
+    case NativeHostErrorCode.InvalidRootPath:
+    case NativeHostErrorCode.RootPathNotAbsolute:
+    case NativeHostErrorCode.RootPathNotDirectory:
+    case NativeHostErrorCode.RootPathNotAllowed:
+    case NativeHostErrorCode.ScanFailed:
     case NativeHostErrorCode.InvalidMessage:
     case NativeHostErrorCode.MessageTooLarge:
     case NativeHostErrorCode.UnsupportedAction:
@@ -48,9 +54,15 @@ export const createNativeOpenFileRequest = (
   settings: ExtensionSettings,
   openMode: OpenMode = 'workspace',
 ): CreateNativeOpenFileRequestResult => {
-  const repoPath = settings.mappings[remoteFile.repoKey]
+  const mapping = settings.mappings.find((candidate) =>
+    isSameRepository(candidate, {
+      provider: remoteFile.provider,
+      owner: remoteFile.owner,
+      repo: remoteFile.repo,
+    }),
+  )
 
-  if (!repoPath) {
+  if (!mapping) {
     return {
       ok: false,
       reason: 'missingRepoMapping',
@@ -65,7 +77,7 @@ export const createNativeOpenFileRequest = (
       provider: remoteFile.provider,
       ide: settings.ide.selectedIde,
       repoKey: remoteFile.repoKey,
-      repoPath,
+      repoPath: mapping.repoPath,
       filePath: remoteFile.filePath ?? '.',
       line: remoteFile.line,
       openMode,

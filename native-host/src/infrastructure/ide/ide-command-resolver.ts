@@ -3,7 +3,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { NativeHostErrorCode } from '#native-protocol'
-import { NativeHostError } from '../native-messaging/native-message.types.js'
+import { NativeHostError } from '../../shared/errors/native-host.error.js'
 import type { IdeAdapter } from './ide-adapter.types.js'
 
 type IdeCommandResolution = {

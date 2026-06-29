@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { NativeHostErrorCode } from '#native-protocol'
-import { registerProcessErrorHandlers } from './errors/process-error-handlers.js'
-import { handleNativeMessage } from './open-file/open-file.handler.js'
+import { registerProcessErrorHandlers } from './infrastructure/process/process-error-handlers.js'
+import { handleNativeMessage } from './native-messaging/native-message.router.js'
 import {
   readInput,
   readNativeMessage,
@@ -10,10 +10,10 @@ import {
 } from './native-messaging/native-message.protocol.js'
 import {
   createNativeHostErrorResponse,
-  NativeHostError,
   type NativeHostResponse,
-} from './native-messaging/native-message.types.js'
-import { log, logError } from './utils/logger.js'
+} from './native-messaging/native-message.response.js'
+import { log, logError } from './infrastructure/logging/logger.js'
+import { NativeHostError } from './shared/errors/native-host.error.js'
 
 registerProcessErrorHandlers()
 

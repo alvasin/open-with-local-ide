@@ -2,9 +2,9 @@ import { spawn } from 'node:child_process'
 import { NativeHostErrorCode } from '#native-protocol'
 import { resolveIdeCommand } from './ide-command-resolver.js'
 import { IDE_ADAPTERS } from './ide-adapters.registry.js'
-import { NativeHostError } from '../native-messaging/native-message.types.js'
-import type { ValidOpenFileRequest } from '../open-file/open-file.types.js'
-import { log, logError } from '../utils/logger.js'
+import type { ValidOpenFileRequest } from '../../features/open-file/open-file.types.js'
+import { log, logError } from '../logging/logger.js'
+import { NativeHostError } from '../../shared/errors/native-host.error.js'
 
 export const openFileInIde = async (request: ValidOpenFileRequest): Promise<void> => {
   const adapter = IDE_ADAPTERS[request.ide]
