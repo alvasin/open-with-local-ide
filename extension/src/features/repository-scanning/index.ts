@@ -1,9 +1,13 @@
-import type { DiscoveredRepository, ScanSkippedEntry } from '@native-protocol'
+import type { DiscoveredRepository, NativeHostErrorCode, ScanSkippedEntry } from '@native-protocol'
+import { RepositoryScanningErrorCode } from './repository-scanning.errors'
 import { scanRepositoriesInHost } from './repository-scanning.native'
+import type { ExtensionNativeErrorCode } from '@/native-messaging'
 import { isSameRepository } from '@/settings/mappings/mappings'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 import type { RepositoryScanFolder } from '@/settings/repository-scanning/repository-scanning.types'
 import { getSettings, saveSettings } from '@/settings/settings.storage'
+
+export { RepositoryScanningErrorCode } from './repository-scanning.errors'
 
 export type RepositoryScanConflict = {
   existing: RepositoryMapping
@@ -20,7 +24,7 @@ export type ScanFolderResult =
     }
   | {
       ok: false
-      errorCode: string
+      errorCode: NativeHostErrorCode | ExtensionNativeErrorCode | RepositoryScanningErrorCode
     }
 
 export type AddScanFolderResult =
@@ -68,7 +72,7 @@ export const addRepositoryScanFolder = async (path: string): Promise<AddScanFold
 export const scanRepositoryFolder = async (scanFolderId: string): Promise<ScanFolderResult> => {
   const current = await getSettings()
   const scanFolder = current.repositoryScanFolders.find((folder) => folder.id === scanFolderId)
-  if (!scanFolder) return { ok: false, errorCode: 'SCAN_FOLDER_NOT_FOUND' }
+  if (!scanFolder) return { ok: false, errorCode: RepositoryScanningErrorCode.ScanFolderNotFound }
 
   const response = await scanRepositoriesInHost({
     action: 'scanRepositories',
@@ -78,7 +82,7 @@ export const scanRepositoryFolder = async (scanFolderId: string): Promise<ScanFo
 
   const latest = await getSettings()
   if (!latest.repositoryScanFolders.some((folder) => folder.id === scanFolderId)) {
-    return { ok: false, errorCode: 'SCAN_FOLDER_NOT_FOUND' }
+    return { ok: false, errorCode: RepositoryScanningErrorCode.ScanFolderNotFound }
   }
 
   const nextMappings = [...latest.mappings]
