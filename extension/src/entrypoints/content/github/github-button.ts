@@ -4,12 +4,13 @@ import { getSettings } from '@/settings/settings.storage'
 type OpenGitHubFileHandler = (button: HTMLButtonElement) => Promise<void>
 
 const OPEN_BUTTON_ATTRIBUTE = 'data-open-with-local-ide-button'
+const OPEN_BUTTON_CLASS = 'open-with-local-ide-button'
+const OPEN_BUTTON_LOADING_TEXT = 'Opening...'
 
 const GITHUB_FILE_ACTION_SELECTORS = [
   'a[data-testid="raw-button"]',
   'a[href*="/raw/"]',
   'a[href*="/blame/"]',
-  'a[href*="/commits/"]',
 ]
 
 const findFileActionsContainer = (): HTMLElement | null => {
@@ -24,29 +25,46 @@ const findFileActionsContainer = (): HTMLElement | null => {
   return null
 }
 
+const findExistingButton = (container: HTMLElement): HTMLButtonElement | null =>
+  container.querySelector<HTMLButtonElement>(`[${OPEN_BUTTON_ATTRIBUTE}]`)
+
 const readSelectedIdeLabel = async (): Promise<string> => {
   const settings = await getSettings()
   return getIdeLabel(settings.ide.selectedIde)
+}
+
+const setButtonLoading = (button: HTMLButtonElement, isLoading: boolean) => {
+  const idleLabel = button.dataset.idleLabel ?? button.textContent ?? ''
+
+  button.disabled = isLoading
+  button.textContent = isLoading ? OPEN_BUTTON_LOADING_TEXT : idleLabel
+  button.setAttribute('aria-busy', String(isLoading))
 }
 
 const createOpenButton = async (
   openGitHubFile: OpenGitHubFileHandler,
 ): Promise<HTMLButtonElement> => {
   const selectedIdeLabel = await readSelectedIdeLabel()
+  const buttonLabel = `Open with ${selectedIdeLabel}`
   const button = document.createElement('button')
 
   button.type = 'button'
-  button.textContent = `Open with ${selectedIdeLabel}`
+  button.textContent = buttonLabel
+  button.dataset.idleLabel = buttonLabel
+  button.className = OPEN_BUTTON_CLASS
+  button.setAttribute('aria-label', buttonLabel)
   button.setAttribute(OPEN_BUTTON_ATTRIBUTE, 'true')
-  button.style.padding = '6px 12px'
-  button.style.border = '1px solid var(--borderColor-default, #d0d7de)'
-  button.style.borderRadius = '6px'
-  button.style.background = 'var(--button-default-bgColor-rest, #f6f8fa)'
-  button.style.color = 'var(--fgColor-default, #1f2328)'
-  button.style.cursor = 'pointer'
 
-  button.addEventListener('click', () => {
-    void openGitHubFile(button)
+  button.addEventListener('click', async () => {
+    if (button.disabled) return
+
+    setButtonLoading(button, true)
+
+    try {
+      await openGitHubFile(button)
+    } finally {
+      setButtonLoading(button, false)
+    }
   })
 
   return button
@@ -60,17 +78,22 @@ export const removeInjectedGitHubButtons = () => {
   }
 }
 
-export const syncInjectedGitHubButton = async (openGitHubFile: OpenGitHubFileHandler) => {
-  const targetContainer = findFileActionsContainer()
-  if (!targetContainer) return
-
-  const existingButton = targetContainer.querySelector<HTMLButtonElement>(
-    `[${OPEN_BUTTON_ATTRIBUTE}]`,
-  )
-  if (existingButton) return
-
+const mountOpenButton = async (
+  targetContainer: HTMLElement,
+  openGitHubFile: OpenGitHubFileHandler,
+) => {
   removeInjectedGitHubButtons()
 
   const button = await createOpenButton(openGitHubFile)
   targetContainer.append(button)
+}
+
+export const syncInjectedGitHubButton = async (openGitHubFile: OpenGitHubFileHandler) => {
+  const targetContainer = findFileActionsContainer()
+  if (!targetContainer) return
+
+  const existingButton = findExistingButton(targetContainer)
+  if (existingButton) return
+
+  await mountOpenButton(targetContainer, openGitHubFile)
 }

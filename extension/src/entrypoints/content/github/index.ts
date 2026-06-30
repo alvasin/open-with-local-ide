@@ -9,7 +9,7 @@ export { parseCurrentGitHubLocation }
 const syncCurrentGitHubPage = async (openGitHubFile: OpenGitHubFileHandler) => {
   const currentLocation = parseCurrentGitHubLocation()
 
-  if (!currentLocation) {
+  if (!currentLocation?.filePath) {
     removeInjectedGitHubButtons()
     return
   }
@@ -18,7 +18,7 @@ const syncCurrentGitHubPage = async (openGitHubFile: OpenGitHubFileHandler) => {
 }
 
 export const syncGitHubContent = (openGitHubFile: OpenGitHubFileHandler) => {
-  listenGitHubPageChanges(() => {
+  return listenGitHubPageChanges(() => {
     void syncCurrentGitHubPage(openGitHubFile)
   })
 }
