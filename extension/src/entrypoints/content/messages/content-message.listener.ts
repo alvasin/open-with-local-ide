@@ -1,11 +1,11 @@
-import { parseCurrentGitHubFile } from '../github/github-current-file'
+import { parseCurrentGitHubLocation } from '../github'
 import { ExtensionMessageType } from '@/shared/extension/extension.enum'
 import { isRecord } from '@/shared/record/record.guard'
 
-export const listenCurrentFileMessages = () => {
+export const listenCurrentLocationMessages = () => {
   browser.runtime.onMessage.addListener((message) => {
-    if (!isRecord(message) || message.type !== ExtensionMessageType.GetCurrentFile) return
+    if (!isRecord(message) || message.type !== ExtensionMessageType.GetCurrentLocation) return
 
-    return Promise.resolve({ file: parseCurrentGitHubFile() })
+    return Promise.resolve({ location: parseCurrentGitHubLocation() })
   })
 }

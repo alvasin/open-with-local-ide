@@ -128,10 +128,12 @@ import {
   addRepositoryScanFolder,
   deleteRepositoryScanFolder,
   deleteScanFolderMappings,
+  RepositoryScanningErrorCode,
   replaceMappingWithDiscovered,
   scanRepositoryFolder,
   type RepositoryScanConflict,
-} from '@/features/repository-scanning/repository-scanning'
+} from '@/features/repository-scanning'
+import { ExtensionNativeErrorCode } from '@/native-messaging'
 import { getRepositoryKey } from '@/settings/mappings/mappings'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 import { getSettings } from '@/settings/settings.storage'
@@ -226,10 +228,12 @@ const scanErrorMessage = (errorCode: string): string => {
       return 'The configured path is not a directory.'
     case NativeHostErrorCode.RootPathNotAllowed:
       return 'Scanning a filesystem or drive root is not allowed.'
-    case 'NATIVE_HOST_CONNECTION_FAILED':
+    case ExtensionNativeErrorCode.NativeHostConnectionFailed:
       return 'Native host is unavailable.'
-    case 'INVALID_NATIVE_HOST_RESPONSE':
+    case ExtensionNativeErrorCode.InvalidNativeHostResponse:
       return 'Native host returned an invalid response.'
+    case RepositoryScanningErrorCode.ScanFolderNotFound:
+      return 'Scan folder no longer exists.'
     default:
       return 'Repository scan failed.'
   }

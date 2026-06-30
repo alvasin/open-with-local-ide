@@ -1,4 +1,4 @@
 export enum ExtensionMessageType {
-  GetCurrentFile = 'GET_CURRENT_FILE',
-  OpenRemoteFile = 'OPEN_REMOTE_FILE',
+  GetCurrentLocation = 'GET_CURRENT_LOCATION',
+  OpenInIde = 'OPEN_IN_IDE',
 }

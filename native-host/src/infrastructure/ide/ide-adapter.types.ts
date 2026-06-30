@@ -7,6 +7,6 @@ export type IdeAdapterBuildArgsPayload = {
 export type IdeAdapter = {
   label: string
   defaultCommand: string
-  buildFileArgs: (payload: IdeAdapterBuildArgsPayload) => string[]
-  buildWorkspaceArgs: (payload: IdeAdapterBuildArgsPayload) => string[]
+  buildFileInRepositoryArgs: (payload: IdeAdapterBuildArgsPayload) => string[]
+  buildRepositoryArgs: (payload: Pick<IdeAdapterBuildArgsPayload, 'repoPath'>) => string[]
 }

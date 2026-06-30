@@ -2,17 +2,17 @@
   <main class="popup">
     <PopupHeader @open-options="openOptions" />
 
-    <CurrentFileSection
-      :current-file="currentFile"
+    <CurrentLocationSection
+      :current-location="currentLocation"
       :is-loading="isLoading"
       :is-opening="isOpening"
       :selected-ide-label="selectedIdeLabel"
       :status="status"
-      @open-current-file="openCurrentFile"
+      @open-current-location="openCurrentLocation"
     />
 
     <PopupStatusSection
-      :current-file="currentFile"
+      :current-location="currentLocation"
       :should-show-open-options="shouldShowOpenOptions"
       :status="status"
       @open-options="openOptionsForCurrentRepo"
@@ -23,24 +23,26 @@
 <script lang="ts" setup>
 import { NativeHostErrorCode } from '@native-protocol'
 import { computed, onMounted, ref } from 'vue'
-import CurrentFileSection from './components/CurrentFileSection.vue'
+import CurrentLocationSection from './components/CurrentLocationSection.vue'
 import PopupHeader from './components/PopupHeader.vue'
 import PopupStatusSection from './components/PopupStatusSection.vue'
 import {
-  createNativeOpenFileRequest,
+  createOpenFileRequest,
+  createOpenRepositoryRequest,
   getIdeLabel,
   getMissingRepoMappingMessage,
   getNativeHostUiMessage,
-} from '@/features/open-file/openFile'
-import type { NativeOpenFileErrorCode, NativeOpenFileResponse } from '@/features/open-file/types'
-import type { ParsedRemoteFile } from '@/providers/types'
+  type OpenInIdeErrorCode,
+  type OpenInIdeResponse,
+} from '@/features/open-in-ide'
+import type { ParsedRemoteLocation } from '@/providers/types'
 import { isSameRepository } from '@/settings/mappings/mappings'
 import { getSettings } from '@/settings/settings.storage'
 import type { ExtensionSettings } from '@/settings/settings.types'
 import { ExtensionMessageType } from '@/shared/extension/extension.enum'
 import { isRecord } from '@/shared/record/record.guard'
 
-const currentFile = ref<ParsedRemoteFile | null>(null)
+const currentLocation = ref<ParsedRemoteLocation | null>(null)
 const settings = ref<ExtensionSettings | null>(null)
 
 const isLoading = ref(true)
@@ -53,15 +55,17 @@ const selectedIdeLabel = computed(() =>
   settings.value ? getIdeLabel(settings.value.ide.selectedIde) : 'VS Code',
 )
 
-const isCurrentFileResponse = (value: unknown): value is { file: ParsedRemoteFile | null } =>
-  isRecord(value) && (value.file === null || isRecord(value.file))
+const isCurrentLocationResponse = (
+  value: unknown,
+): value is { location: ParsedRemoteLocation | null } =>
+  isRecord(value) && (value.location === null || isRecord(value.location))
 
-const isNativeOpenFileResponse = (value: unknown): value is NativeOpenFileResponse =>
+const isOpenInIdeResponse = (value: unknown): value is OpenInIdeResponse =>
   isRecord(value) && typeof value.ok === 'boolean'
 
 const loadPopupState = async () => {
   isLoading.value = true
-  currentFile.value = null
+  currentLocation.value = null
   status.value = ''
   shouldShowOpenOptions.value = false
 
@@ -75,20 +79,20 @@ const loadPopupState = async () => {
       getSettings(),
       typeof tab?.id === 'number'
         ? browser.tabs
-            .sendMessage(tab.id, { type: ExtensionMessageType.GetCurrentFile })
+            .sendMessage(tab.id, { type: ExtensionMessageType.GetCurrentLocation })
             .catch(() => null)
         : null,
     ])
 
     settings.value = loadedSettings
 
-    if (!isCurrentFileResponse(fileResponse) || !fileResponse.file) {
+    if (!isCurrentLocationResponse(fileResponse) || !fileResponse.location) {
       status.value = 'Current tab is not a supported GitHub file page.'
       return
     }
 
-    const file = fileResponse.file
-    currentFile.value = file
+    const file = fileResponse.location
+    currentLocation.value = file
 
     if (
       !loadedSettings.mappings.some((mapping) =>
@@ -119,7 +123,7 @@ const openOptions = async () => {
 }
 
 const openOptionsForCurrentRepo = async () => {
-  const repoKey = currentFile.value?.repoKey
+  const repoKey = currentLocation.value?.repoKey
 
   if (!repoKey) {
     await openOptions()
@@ -135,13 +139,15 @@ const openOptionsForCurrentRepo = async () => {
   }
 }
 
-const openCurrentFile = async () => {
-  const file = currentFile.value
+const openCurrentLocation = async () => {
+  const file = currentLocation.value
   const currentSettings = settings.value
 
   if (!file || !currentSettings) return
 
-  const result = createNativeOpenFileRequest(file, currentSettings)
+  const result = file.filePath
+    ? createOpenFileRequest({ ...file, filePath: file.filePath }, currentSettings)
+    : createOpenRepositoryRequest(file, currentSettings)
 
   if (!result.ok) {
     status.value = getMissingRepoMappingMessage(result.repoKey)
@@ -155,11 +161,11 @@ const openCurrentFile = async () => {
 
   try {
     const response = await browser.runtime.sendMessage({
-      type: ExtensionMessageType.OpenRemoteFile,
+      type: ExtensionMessageType.OpenInIde,
       request: result.request,
     })
 
-    if (!isNativeOpenFileResponse(response)) {
+    if (!isOpenInIdeResponse(response)) {
       status.value = 'Native host returned an invalid response.'
       return
     }
@@ -170,7 +176,7 @@ const openCurrentFile = async () => {
     }
 
     status.value = getNativeHostUiMessage(response)
-    const repoPathErrorCodes: NativeOpenFileErrorCode[] = [
+    const repoPathErrorCodes: OpenInIdeErrorCode[] = [
       NativeHostErrorCode.RepoPathMustBeAbsolute,
       NativeHostErrorCode.RepoPathNotFound,
       NativeHostErrorCode.RepoPathNotDirectory,

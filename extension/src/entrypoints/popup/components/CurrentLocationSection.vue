@@ -1,37 +1,37 @@
 <template>
-  <section class="current-file">
-    <p v-if="isLoading || !currentFile" class="current-file__status">
+  <section class="current-location">
+    <p v-if="isLoading || !currentLocation" class="current-location__status">
       {{ isLoading ? 'Loading current tab...' : status }}
     </p>
 
     <template v-else>
-      <dl class="current-file__details">
-        <div class="current-file__detail">
+      <dl class="current-location__details">
+        <div class="current-location__detail">
           <dt>Repository</dt>
-          <dd>{{ currentFile.repoKey }}</dd>
+          <dd>{{ currentLocation.repoKey }}</dd>
         </div>
 
-        <div class="current-file__detail">
-          <dt>{{ currentFile.filePath ? 'File' : 'Target' }}</dt>
-          <dd>{{ currentFile.filePath ?? 'Repository root' }}</dd>
+        <div class="current-location__detail">
+          <dt>{{ currentLocation.filePath ? 'File' : 'Target' }}</dt>
+          <dd>{{ currentLocation.filePath ?? 'Repository root' }}</dd>
         </div>
 
-        <div class="current-file__detail">
+        <div class="current-location__detail">
           <dt>Line</dt>
-          <dd>{{ currentFile.line ?? '-' }}</dd>
+          <dd>{{ currentLocation.line ?? '-' }}</dd>
         </div>
 
-        <div class="current-file__detail">
+        <div class="current-location__detail">
           <dt>IDE</dt>
           <dd>{{ selectedIdeLabel }}</dd>
         </div>
       </dl>
 
       <button
-        class="current-file__primary-button"
+        class="current-location__primary-button"
         type="button"
         :disabled="isOpening"
-        @click="emit('open-current-file')"
+        @click="emit('open-current-location')"
       >
         {{ isOpening ? 'Opening...' : `Open with ${selectedIdeLabel}` }}
       </button>
@@ -40,10 +40,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { ParsedRemoteFile } from '@/providers/types'
+import type { ParsedRemoteLocation } from '@/providers/types'
 
 defineProps<{
-  currentFile: ParsedRemoteFile | null
+  currentLocation: ParsedRemoteLocation | null
   isLoading: boolean
   isOpening: boolean
   selectedIdeLabel: string
@@ -51,12 +51,12 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'open-current-file': []
+  'open-current-location': []
 }>()
 </script>
 
 <style lang="scss" scoped>
-.current-file {
+.current-location {
   display: grid;
   gap: 10px;
   padding: 12px;

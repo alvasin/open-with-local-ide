@@ -1,4 +1,4 @@
-import type { ParsedRemoteFile } from './types'
+import type { ParsedRemoteLocation } from './types'
 
 const GITHUB_HOST = 'github.com'
 const GITHUB_BLOB_SEGMENT = 'blob'
@@ -17,7 +17,7 @@ const readGitHubLine = (hash: string): number | undefined => {
   return line
 }
 
-export const parseGitHubUrl = (url: string): ParsedRemoteFile | null => {
+export const parseGitHubUrl = (url: string): ParsedRemoteLocation | null => {
   let parsedUrl: URL
 
   try {
@@ -43,7 +43,7 @@ export const parseGitHubUrl = (url: string): ParsedRemoteFile | null => {
     owner,
     repo,
     repoKey: `${parsedUrl.hostname}/${owner}/${repo}`,
-  } satisfies Omit<ParsedRemoteFile, 'branch' | 'filePath' | 'line'>
+  } satisfies Omit<ParsedRemoteLocation, 'branch' | 'filePath' | 'line'>
 
   if (!pageSegment) return repoPage
 
