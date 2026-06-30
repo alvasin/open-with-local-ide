@@ -45,28 +45,33 @@ const createCodeDropdownItem = async (
 ): Promise<HTMLLIElement> => {
   const selectedIdeLabel = await readSelectedIdeLabel()
   const buttonLabel = `Open with ${selectedIdeLabel}`
-  const item = document.createElement('li')
-  const button = document.createElement('button')
-  const leadingVisual = document.createElement('span')
-  const label = document.createElement('span')
 
-  item.className = 'open-with-local-ide-action-item'
+  const item = Object.assign(document.createElement('li'), {
+    className: 'open-with-local-ide-action-item',
+  })
+  const button = Object.assign(document.createElement('button'), {
+    className: 'open-with-local-ide-action-button',
+    tabIndex: 0,
+    type: 'button',
+  })
+  const leadingVisual = Object.assign(document.createElement('span'), {
+    className: 'open-with-local-ide-action-icon',
+  })
+  const label = Object.assign(document.createElement('span'), {
+    className: 'open-with-local-ide-action-label',
+    textContent: buttonLabel,
+  })
+
   item.setAttribute('data-component', 'ActionList.Item')
   item.setAttribute('data-has-description', 'false')
   item.setAttribute(OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE, 'true')
 
-  button.type = 'button'
-  button.tabIndex = 0
-  button.className = 'open-with-local-ide-action-button'
   button.dataset.size = 'medium'
   button.setAttribute('aria-label', buttonLabel)
 
-  leadingVisual.className = 'open-with-local-ide-action-icon'
   leadingVisual.setAttribute('data-component', 'ActionList.LeadingVisual')
   leadingVisual.append(createIdeIcon())
 
-  label.className = 'open-with-local-ide-action-label'
-  label.textContent = buttonLabel
   label.setAttribute('data-component', 'ActionList.Item.Label')
 
   button.addEventListener('click', async () => {

@@ -26,13 +26,14 @@ const createOpenButton = async (
 ): Promise<HTMLButtonElement> => {
   const selectedIdeLabel = await readSelectedIdeLabel()
   const buttonLabel = `Open with ${selectedIdeLabel}`
-  const button = document.createElement('button')
+  const button = Object.assign(document.createElement('button'), {
+    className: OPEN_BUTTON_CLASS,
+    tabIndex: 0,
+    title: buttonLabel,
+    type: 'button',
+  })
 
-  button.type = 'button'
-  button.tabIndex = 0
-  button.className = OPEN_BUTTON_CLASS
   button.setAttribute('aria-label', buttonLabel)
-  button.setAttribute('title', buttonLabel)
   button.setAttribute('data-component', 'IconButton')
   button.setAttribute('data-loading', 'false')
   button.setAttribute('data-no-visuals', 'true')
