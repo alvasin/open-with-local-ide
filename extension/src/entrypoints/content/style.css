@@ -1,0 +1,48 @@
+.open-with-local-ide-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-small-size, 1.75rem);
+  padding: 0 var(--control-small-paddingInline-condensed, 0.5rem);
+  border: var(--borderWidth-thin, max(1px, 0.0625rem)) solid
+    var(--button-default-borderColor-rest, #d1d9e0);
+  border-radius: 0;
+  appearance: none;
+  background-color: var(--button-default-bgColor-rest, #f6f8fa);
+  color: var(--button-default-fgColor-rest, #25292e);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-body-size-small, 0.75rem);
+  font-weight: var(--base-text-weight-medium, 500);
+  line-height: var(--text-body-lineHeight-small, 1.6667);
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    color 80ms cubic-bezier(0.65, 0, 0.35, 1),
+    background-color 80ms cubic-bezier(0.65, 0, 0.35, 1),
+    border-color 80ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.open-with-local-ide-button:hover:not(:disabled) {
+  background-color: var(--button-default-bgColor-hover, #eff2f5);
+  border-color: var(--button-default-borderColor-hover, #d1d9e0);
+}
+
+.open-with-local-ide-button:active:not(:disabled) {
+  background-color: var(--button-default-bgColor-active, #e6eaef);
+  border-color: var(--button-default-borderColor-active, #d1d9e0);
+}
+
+.open-with-local-ide-button:focus-visible {
+  outline: 2px solid var(--focus-outlineColor, #0969da);
+  outline-offset: 2px;
+}
+
+.open-with-local-ide-button:disabled {
+  background-color: var(--button-default-bgColor-disabled, #eff2f5);
+  border-color: var(--button-default-borderColor-disabled, #d1d9e0);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
