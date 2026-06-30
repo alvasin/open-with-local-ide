@@ -1,10 +1,11 @@
-import { NativeHostErrorCode } from '@native-protocol'
-import type { CreateNativeOpenFileRequestResult, NativeOpenFileResponse, OpenMode } from './types'
-import { ExtensionNativeErrorCode } from './types'
-import type { ParsedRemoteFile } from '@/providers/types'
+import { NativeHostErrorCode, type OpenInIdeRequest } from '@native-protocol'
+import type { CreateOpenInIdeRequestResult, OpenInIdeResponse } from './open-in-ide.types'
+import { ExtensionNativeErrorCode } from '@/native-messaging'
+import type { ParsedRemoteLocation } from '@/providers/types'
 import { isSameRepository } from '@/settings/mappings/mappings'
 import type { ExtensionSettings } from '@/settings/settings.types'
 import type { IdeId } from '@/shared/ide/ide.types'
+export { openInIde } from './open-in-ide.native'
 
 const IDE_LABELS: Record<IdeId, string> = {
   vscode: 'VS Code',
@@ -15,7 +16,7 @@ export const getIdeLabel = (ide: IdeId): string => IDE_LABELS[ide] ?? ide
 export const getMissingRepoMappingMessage = (repoKey: string): string =>
   `Local path for ${repoKey} is not configured. Open Options.`
 
-export const getNativeHostUiMessage = (response: NativeOpenFileResponse): string => {
+export const getNativeHostUiMessage = (response: OpenInIdeResponse): string => {
   if (response.ok) return ''
 
   switch (response.errorCode) {
@@ -49,16 +50,16 @@ export const getNativeHostUiMessage = (response: NativeOpenFileResponse): string
   }
 }
 
-export const createNativeOpenFileRequest = (
-  remoteFile: ParsedRemoteFile,
+const createRequest = (
+  remoteLocation: ParsedRemoteLocation,
   settings: ExtensionSettings,
-  openMode: OpenMode = 'workspace',
-): CreateNativeOpenFileRequestResult => {
+  target: OpenInIdeRequest['target'],
+): CreateOpenInIdeRequestResult => {
   const mapping = settings.mappings.find((candidate) =>
     isSameRepository(candidate, {
-      provider: remoteFile.provider,
-      owner: remoteFile.owner,
-      repo: remoteFile.repo,
+      provider: remoteLocation.provider,
+      owner: remoteLocation.owner,
+      repo: remoteLocation.repo,
     }),
   )
 
@@ -66,21 +67,43 @@ export const createNativeOpenFileRequest = (
     return {
       ok: false,
       reason: 'missingRepoMapping',
-      repoKey: remoteFile.repoKey,
+      repoKey: remoteLocation.repoKey,
     }
   }
 
   return {
     ok: true,
     request: {
-      action: 'openFile',
-      provider: remoteFile.provider,
+      action: 'openInIde',
+      provider: remoteLocation.provider,
       ide: settings.ide.selectedIde,
-      repoKey: remoteFile.repoKey,
+      repoKey: remoteLocation.repoKey,
       repoPath: mapping.repoPath,
-      filePath: remoteFile.filePath ?? '.',
-      line: remoteFile.line,
-      openMode,
+      target,
     },
   }
 }
+
+export const createOpenFileRequest = (
+  remoteFile: ParsedRemoteLocation & { filePath: string },
+  settings: ExtensionSettings,
+): CreateOpenInIdeRequestResult =>
+  createRequest(remoteFile, settings, {
+    kind: 'file',
+    filePath: remoteFile.filePath,
+    line: remoteFile.line,
+  })
+
+export const createOpenRepositoryRequest = (
+  remoteRepository: ParsedRemoteLocation,
+  settings: ExtensionSettings,
+): CreateOpenInIdeRequestResult =>
+  createRequest(remoteRepository, settings, {
+    kind: 'repository',
+  })
+
+export type {
+  CreateOpenInIdeRequestResult,
+  OpenInIdeErrorCode,
+  OpenInIdeResponse,
+} from './open-in-ide.types'

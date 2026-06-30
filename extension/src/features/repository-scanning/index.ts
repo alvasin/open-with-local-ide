@@ -1,40 +1,22 @@
-import type { DiscoveredRepository, ScanSkippedEntry } from '@native-protocol'
-import { scanRepositoriesInHost } from '@/native-messaging/repository-scanning.native'
-import { isSameRepository } from '@/settings/mappings/mappings'
+import { isAbsolutePath, normalizePathForComparison } from './path-comparison'
+import { RepositoryScanningErrorCode } from './repository-scanning.errors'
+import { mergeDiscoveredRepositories } from './repository-scanning.merge'
+import { scanRepositoriesInHost } from './repository-scanning.native'
+import type {
+  AddScanFolderResult,
+  RepositoryScanConflict,
+  ScanFolderResult,
+} from './repository-scanning.types'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 import type { RepositoryScanFolder } from '@/settings/repository-scanning/repository-scanning.types'
 import { getSettings, saveSettings } from '@/settings/settings.storage'
 
-export type RepositoryScanConflict = {
-  existing: RepositoryMapping
-  discovered: DiscoveredRepository
-  scanFolderId: string
-}
-
-export type ScanFolderResult =
-  | {
-      ok: true
-      conflicts: RepositoryScanConflict[]
-      skipped: ScanSkippedEntry[]
-      importedCount: number
-    }
-  | {
-      ok: false
-      errorCode: string
-    }
-
-export type AddScanFolderResult =
-  | { ok: true; folder: RepositoryScanFolder }
-  | { ok: false; reason: 'required' | 'not_absolute' | 'duplicate' }
-
-const isAbsolutePath = (value: string): boolean =>
-  /^(?:[a-zA-Z]:[\\/]|\\\\)/.test(value) || value.startsWith('/')
-
-const normalizePathForComparison = (value: string): string =>
-  value
-    .replace(/[\\/]+$/, '')
-    .replaceAll('\\', '/')
-    .toLowerCase()
+export { RepositoryScanningErrorCode } from './repository-scanning.errors'
+export type {
+  AddScanFolderResult,
+  RepositoryScanConflict,
+  ScanFolderResult,
+} from './repository-scanning.types'
 
 export const addRepositoryScanFolder = async (path: string): Promise<AddScanFolderResult> => {
   const folderPath = path.trim()
@@ -68,7 +50,7 @@ export const addRepositoryScanFolder = async (path: string): Promise<AddScanFold
 export const scanRepositoryFolder = async (scanFolderId: string): Promise<ScanFolderResult> => {
   const current = await getSettings()
   const scanFolder = current.repositoryScanFolders.find((folder) => folder.id === scanFolderId)
-  if (!scanFolder) return { ok: false, errorCode: 'SCAN_FOLDER_NOT_FOUND' }
+  if (!scanFolder) return { ok: false, errorCode: RepositoryScanningErrorCode.ScanFolderNotFound }
 
   const response = await scanRepositoriesInHost({
     action: 'scanRepositories',
@@ -78,41 +60,19 @@ export const scanRepositoryFolder = async (scanFolderId: string): Promise<ScanFo
 
   const latest = await getSettings()
   if (!latest.repositoryScanFolders.some((folder) => folder.id === scanFolderId)) {
-    return { ok: false, errorCode: 'SCAN_FOLDER_NOT_FOUND' }
+    return { ok: false, errorCode: RepositoryScanningErrorCode.ScanFolderNotFound }
   }
 
-  const nextMappings = [...latest.mappings]
-  const conflicts: RepositoryScanConflict[] = []
-  let importedCount = 0
-
-  for (const discovered of response.repositories) {
-    const existing = nextMappings.find((mapping) => isSameRepository(mapping, discovered))
-    if (!existing) {
-      nextMappings.push({
-        id: crypto.randomUUID(),
-        provider: discovered.provider,
-        owner: discovered.owner,
-        repo: discovered.repo,
-        repoPath: discovered.repoPath,
-        source: 'scan',
-        scanFolderId,
-      })
-      importedCount += 1
-      continue
-    }
-
-    if (
-      normalizePathForComparison(existing.repoPath) !==
-      normalizePathForComparison(discovered.repoPath)
-    ) {
-      conflicts.push({ existing, discovered, scanFolderId })
-    }
-  }
+  const mergeResult = mergeDiscoveredRepositories(
+    latest.mappings,
+    response.repositories,
+    scanFolderId,
+  )
 
   const scannedAt = new Date().toISOString()
   await saveSettings({
     ...latest,
-    mappings: nextMappings,
+    mappings: mergeResult.mappings,
     repositoryScanFolders: latest.repositoryScanFolders.map((folder) =>
       folder.id === scanFolderId ? { ...folder, lastScannedAt: scannedAt } : folder,
     ),
@@ -120,9 +80,9 @@ export const scanRepositoryFolder = async (scanFolderId: string): Promise<ScanFo
 
   return {
     ok: true,
-    conflicts,
+    conflicts: mergeResult.conflicts,
     skipped: response.skipped,
-    importedCount,
+    importedCount: mergeResult.importedCount,
   }
 }
 

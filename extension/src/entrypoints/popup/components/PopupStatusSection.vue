@@ -1,5 +1,5 @@
 <template>
-  <section v-if="status && currentFile" class="popup-status">
+  <section v-if="status && currentLocation" class="popup-status">
     <p class="popup-status__text">{{ status }}</p>
 
     <button
@@ -14,10 +14,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { ParsedRemoteFile } from '@/providers/types'
+import type { ParsedRemoteLocation } from '@/providers/types'
 
 defineProps<{
-  currentFile: ParsedRemoteFile | null
+  currentLocation: ParsedRemoteLocation | null
   shouldShowOpenOptions: boolean
   status: string
 }>()
