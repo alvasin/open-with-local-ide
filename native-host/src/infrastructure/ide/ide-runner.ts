@@ -19,12 +19,15 @@ export const launchTargetInIde = async (request: ValidOpenInIdeRequest): Promise
   const command = commandResolution.command
 
   const args =
-    request.target.kind === 'repository'
-      ? adapter.buildRepositoryArgs({ repoPath: request.repoPath })
-      : adapter.buildFileInRepositoryArgs({
+    request.target.kind === 'file'
+      ? adapter.buildFileInRepositoryArgs({
           resolvedPath: request.target.resolvedPath,
           repoPath: request.repoPath,
           line: request.target.line,
+        })
+      : adapter.buildRepositoryArgs({
+          repoPath:
+            request.target.kind === 'directory' ? request.target.resolvedPath : request.repoPath,
         })
 
   log({

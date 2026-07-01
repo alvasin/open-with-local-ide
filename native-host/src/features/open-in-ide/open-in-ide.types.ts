@@ -15,6 +15,13 @@ export type ValidOpenInIdeRequest =
     })
   | (ValidOpenInIdeRequestBase & {
       target: {
+        kind: 'directory'
+        directoryPath: string
+        resolvedPath: string
+      }
+    })
+  | (ValidOpenInIdeRequestBase & {
+      target: {
         kind: 'file'
         filePath: string
         line?: number

@@ -3,6 +3,10 @@ export type OpenInIdeTarget =
       kind: 'repository'
     }
   | {
+      kind: 'directory'
+      directoryPath: string
+    }
+  | {
       kind: 'file'
       filePath: string
       line?: number
