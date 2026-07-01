@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { NativeHostErrorCode } from '#native-protocol'
 import { NativeHostError } from '../../shared/errors/native-host.error.js'
+import { validateDirectoryTarget } from './targets/directory-target.validation.js'
 import { validateFileTarget } from './targets/file-target.validation.js'
 import { validateRepositoryTarget } from './targets/repository-target.validation.js'
 import type { NativeOpenInIdeRequest, ValidOpenInIdeRequest } from './open-in-ide.types.js'
@@ -19,6 +20,13 @@ const fileTargetSchema = z
   })
   .strict()
 
+const directoryTargetSchema = z
+  .object({
+    kind: z.literal('directory'),
+    directoryPath: z.string().trim().min(1),
+  })
+  .strict()
+
 export const openInIdeRequestSchema = z
   .object({
     action: z.literal('openInIde'),
@@ -26,7 +34,11 @@ export const openInIdeRequestSchema = z
     ide: z.literal('vscode').default('vscode'),
     repoKey: z.string().trim().min(1).optional(),
     provider: z.literal('github').optional(),
-    target: z.discriminatedUnion('kind', [repositoryTargetSchema, fileTargetSchema]),
+    target: z.discriminatedUnion('kind', [
+      repositoryTargetSchema,
+      directoryTargetSchema,
+      fileTargetSchema,
+    ]),
   })
   .strict()
 
@@ -46,6 +58,17 @@ export const validateOpenInIdeRequest = (message: unknown): ValidOpenInIdeReques
       ...request,
       repoPath,
       target: request.target,
+    }
+  }
+
+  if (request.target.kind === 'directory') {
+    return {
+      ...request,
+      repoPath,
+      target: {
+        ...request.target,
+        resolvedPath: validateDirectoryTarget(repoPath, request.target.directoryPath),
+      },
     }
   }
 

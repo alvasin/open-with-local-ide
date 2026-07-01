@@ -12,8 +12,18 @@
         </div>
 
         <div class="current-location__detail">
-          <dt>{{ currentLocation.filePath ? 'File' : 'Target' }}</dt>
-          <dd>{{ currentLocation.filePath ?? 'Repository root' }}</dd>
+          <dt>
+            {{
+              currentLocation.filePath
+                ? 'File'
+                : currentLocation.directoryPath
+                  ? 'Folder'
+                  : 'Target'
+            }}
+          </dt>
+          <dd>
+            {{ currentLocation.filePath ?? currentLocation.directoryPath ?? 'Repository root' }}
+          </dd>
         </div>
 
         <div class="current-location__detail">

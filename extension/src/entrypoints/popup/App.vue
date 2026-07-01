@@ -27,6 +27,7 @@ import CurrentLocationSection from './components/CurrentLocationSection.vue'
 import PopupHeader from './components/PopupHeader.vue'
 import PopupStatusSection from './components/PopupStatusSection.vue'
 import {
+  createOpenDirectoryRequest,
   createOpenFileRequest,
   createOpenRepositoryRequest,
   getIdeLabel,
@@ -147,7 +148,9 @@ const openCurrentLocation = async () => {
 
   const result = file.filePath
     ? createOpenFileRequest({ ...file, filePath: file.filePath }, currentSettings)
-    : createOpenRepositoryRequest(file, currentSettings)
+    : file.directoryPath
+      ? createOpenDirectoryRequest({ ...file, directoryPath: file.directoryPath }, currentSettings)
+      : createOpenRepositoryRequest(file, currentSettings)
 
   if (!result.ok) {
     status.value = getMissingRepoMappingMessage(result.repoKey)
@@ -171,7 +174,11 @@ const openCurrentLocation = async () => {
     }
 
     if (response.ok) {
-      status.value = file.filePath ? 'File opened successfully.' : 'Repository opened successfully.'
+      status.value = file.filePath
+        ? 'File opened successfully.'
+        : file.directoryPath
+          ? 'Directory opened successfully.'
+          : 'Repository opened successfully.'
       return
     }
 

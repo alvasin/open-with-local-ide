@@ -10,6 +10,9 @@ export enum NativeHostErrorCode {
   RepoPathMustBeAbsolute = 'REPO_PATH_MUST_BE_ABSOLUTE',
   RepoPathNotFound = 'REPO_PATH_NOT_FOUND',
   RepoPathNotDirectory = 'REPO_PATH_NOT_DIRECTORY',
+  DirectoryPathMustBeRelative = 'DIRECTORY_PATH_MUST_BE_RELATIVE',
+  DirectoryNotFound = 'DIRECTORY_NOT_FOUND',
+  DirectoryPathNotDirectory = 'DIRECTORY_PATH_NOT_DIRECTORY',
   FilePathMustBeRelative = 'FILE_PATH_MUST_BE_RELATIVE',
   PathTraversalDetected = 'PATH_TRAVERSAL_DETECTED',
   FileNotFound = 'FILE_NOT_FOUND',
@@ -31,6 +34,9 @@ export type NativeHostErrorDetailsByCode = {
   [NativeHostErrorCode.RepoPathMustBeAbsolute]: { repoPath: string }
   [NativeHostErrorCode.RepoPathNotFound]: { repoPath: string }
   [NativeHostErrorCode.RepoPathNotDirectory]: { repoPath: string }
+  [NativeHostErrorCode.DirectoryPathMustBeRelative]: { directoryPath: string }
+  [NativeHostErrorCode.DirectoryNotFound]: { directoryPath: string }
+  [NativeHostErrorCode.DirectoryPathNotDirectory]: { directoryPath: string }
   [NativeHostErrorCode.FilePathMustBeRelative]: { filePath: string }
   [NativeHostErrorCode.PathTraversalDetected]: { filePath: string }
   [NativeHostErrorCode.FileNotFound]: { filePath: string }
