@@ -2,7 +2,7 @@
   "name": "open-with-local-ide-native-host",
   "description": "Native messaging host for Open With Local IDE.",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "imports": {
     "#native-protocol": "./dist/public-api/index.js"
