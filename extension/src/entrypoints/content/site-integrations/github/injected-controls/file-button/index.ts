@@ -2,8 +2,6 @@ import { createIdeIcon } from '../ide-icon'
 import { getIdeLabel } from '@/features/open-in-ide'
 import { getSettings } from '@/settings/settings.storage'
 
-type OpenGitHubFileHandler = (button: HTMLButtonElement) => Promise<void>
-
 const OPEN_BUTTON_ATTRIBUTE = 'data-open-with-local-ide-button'
 const OPEN_BUTTON_CLASS =
   'prc-Button-ButtonBase-9n-Xk prc-Button-IconButton-fyge7 open-with-local-ide-button'
@@ -22,7 +20,7 @@ const readSelectedIdeLabel = async (): Promise<string> => {
 }
 
 const createOpenButton = async (
-  openGitHubFile: OpenGitHubFileHandler,
+  openGitHubFile: (button: HTMLButtonElement) => Promise<void>,
 ): Promise<HTMLButtonElement> => {
   const selectedIdeLabel = await readSelectedIdeLabel()
   const buttonLabel = `Open with ${selectedIdeLabel}`
@@ -67,7 +65,7 @@ export const removeInjectedGitHubButtons = () => {
 
 const mountOpenButton = async (
   targetContainer: HTMLElement,
-  openGitHubFile: OpenGitHubFileHandler,
+  openGitHubFile: (button: HTMLButtonElement) => Promise<void>,
 ) => {
   removeInjectedGitHubButtons()
 
@@ -84,7 +82,9 @@ const mountOpenButton = async (
   targetContainer.append(button)
 }
 
-export const syncInjectedGitHubButton = async (openGitHubFile: OpenGitHubFileHandler) => {
+export const syncInjectedGitHubButton = async (
+  openGitHubFile: (button: HTMLButtonElement) => Promise<void>,
+) => {
   const targetContainer = findFileActionsContainer()
   if (!targetContainer) return
 

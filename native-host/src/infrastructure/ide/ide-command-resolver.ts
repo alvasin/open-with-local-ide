@@ -6,11 +6,6 @@ import { NativeHostErrorCode } from '#native-protocol'
 import { NativeHostError } from '../../shared/errors/native-host.error.js'
 import type { IdeAdapter } from './ide-adapter.types.js'
 
-type IdeCommandResolution = {
-  command: string
-  source: 'detected' | 'default'
-}
-
 const getWindowsVsCodeCandidates = (): string[] => {
   const candidateRoots = [
     process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, 'Programs'),
@@ -27,7 +22,10 @@ const getWindowsVsCodeCandidates = (): string[] => {
 const findExistingFile = (filePaths: string[]): string | undefined =>
   filePaths.find((filePath) => fs.existsSync(filePath))
 
-export const resolveIdeCommand = (ide: string, adapter: IdeAdapter) => {
+export const resolveIdeCommand = (
+  ide: string,
+  adapter: IdeAdapter,
+): { command: string; source: 'detected' | 'default' } => {
   if (ide === 'vscode' && process.platform === 'win32') {
     const detectedCommand = findExistingFile(getWindowsVsCodeCandidates())
 
@@ -35,7 +33,7 @@ export const resolveIdeCommand = (ide: string, adapter: IdeAdapter) => {
       return {
         command: detectedCommand,
         source: 'detected',
-      } satisfies IdeCommandResolution
+      }
     }
 
     throw new NativeHostError({
@@ -47,5 +45,5 @@ export const resolveIdeCommand = (ide: string, adapter: IdeAdapter) => {
   return {
     command: adapter.defaultCommand,
     source: 'default',
-  } satisfies IdeCommandResolution
+  }
 }

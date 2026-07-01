@@ -1,9 +1,4 @@
-type GitHubPageChangeHandler = () => void
-type GitHubPageChangeCleanup = () => void
-
-export const listenGitHubPageChanges = (
-  onPageChange: GitHubPageChangeHandler,
-): GitHubPageChangeCleanup => {
+export const listenGitHubPageChanges = (onPageChange: () => void): (() => void) => {
   let syncTimeoutId: number | null = null
 
   const scheduleSync = () => {

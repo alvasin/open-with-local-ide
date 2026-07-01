@@ -1,5 +1,5 @@
 import { defaultRepoMappings } from './mappings.defaults'
-import type { RepositoryMapping, RepoMappings } from './mappings.types'
+import type { RepositoryMapping } from './mappings.types'
 import { isRecord } from '@/shared/record/record.guard'
 
 const parseMapping = (value: unknown): RepositoryMapping | null => {
@@ -37,7 +37,7 @@ const parseMapping = (value: unknown): RepositoryMapping | null => {
   return { id, provider: 'github', owner, repo, repoPath, source: 'manual' }
 }
 
-export const parseRepoMappings = (value: unknown): RepoMappings => {
+export const parseRepoMappings = (value: unknown): RepositoryMapping[] => {
   if (!Array.isArray(value)) return defaultRepoMappings()
 
   const mappings = value.map(parseMapping).filter((mapping) => mapping !== null)

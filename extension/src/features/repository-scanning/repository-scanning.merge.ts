@@ -4,12 +4,6 @@ import type { RepositoryScanConflict } from './repository-scanning.types'
 import { isSameRepository } from '@/settings/mappings/mappings'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 
-type MergeDiscoveredRepositoriesResult = {
-  mappings: RepositoryMapping[]
-  conflicts: RepositoryScanConflict[]
-  importedCount: number
-}
-
 const createScannedMapping = (
   discovered: DiscoveredRepository,
   scanFolderId: string,
@@ -27,7 +21,7 @@ export const mergeDiscoveredRepositories = (
   mappings: RepositoryMapping[],
   discoveredRepositories: DiscoveredRepository[],
   scanFolderId: string,
-): MergeDiscoveredRepositoriesResult => {
+) => {
   const nextMappings = [...mappings]
   const conflicts: RepositoryScanConflict[] = []
   let importedCount = 0

@@ -2,13 +2,11 @@ import { isSameRepository } from '@/settings/mappings/mappings'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 import { getSettings, saveSettings } from '@/settings/settings.storage'
 
-export type SaveManualMappingInput = {
+export const saveManualMapping = async (input: {
   owner: string
   repo: string
   repoPath: string
-}
-
-export const saveManualMapping = async (input: SaveManualMappingInput): Promise<void> => {
+}): Promise<void> => {
   const current = await getSettings()
   const normalizedInput = {
     provider: 'github' as const,
