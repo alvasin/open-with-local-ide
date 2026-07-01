@@ -29,7 +29,10 @@ const SKIPPED_DIR_NAMES = new Set(
   ].map((name) => name.toLowerCase()),
 )
 
-type GitDirectoryResult = { found: false } | { found: true; gitDirectory?: string }
+type GitDirectoryResult =
+  | { status: 'missing' }
+  | { status: 'invalid' }
+  | { status: 'found'; gitDirectory: string }
 
 const readGitDirectory = (repoPath: string): GitDirectoryResult => {
   const dotGitPath = path.join(repoPath, '.git')
@@ -38,17 +41,17 @@ const readGitDirectory = (repoPath: string): GitDirectoryResult => {
   try {
     stats = fs.lstatSync(dotGitPath)
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { found: false }
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { status: 'missing' }
     throw error
   }
 
-  if (stats.isDirectory()) return { found: true, gitDirectory: dotGitPath }
-  if (!stats.isFile()) return { found: true }
+  if (stats.isDirectory()) return { status: 'found', gitDirectory: dotGitPath }
+  if (!stats.isFile()) return { status: 'invalid' }
 
   const match = fs.readFileSync(dotGitPath, 'utf8').match(/^\s*gitdir:\s*(.+?)\s*$/i)
-  if (!match?.[1]) return { found: true }
+  if (!match?.[1]) return { status: 'invalid' }
 
-  return { found: true, gitDirectory: path.resolve(repoPath, match[1]) }
+  return { status: 'found', gitDirectory: path.resolve(repoPath, match[1]) }
 }
 
 const findGitConfig = (gitDirectory: string): string | null => {
@@ -75,8 +78,8 @@ const discoverRepository = (
     return null
   }
 
-  if (!gitDirectoryResult.found) return undefined
-  if (!gitDirectoryResult.gitDirectory) {
+  if (gitDirectoryResult.status === 'missing') return undefined
+  if (gitDirectoryResult.status === 'invalid') {
     skipped.push({ path: repoPath, reason: 'invalid_git_config' })
     return null
   }

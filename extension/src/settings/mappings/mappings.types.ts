@@ -9,5 +9,3 @@ export type RepositoryMapping = {
   source: 'manual' | 'scan'
   scanFolderId?: string
 }
-
-export type RepoMappings = RepositoryMapping[]

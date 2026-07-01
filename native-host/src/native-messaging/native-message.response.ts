@@ -1,9 +1,10 @@
 import {
+  type NativeHostErrorData,
   NativeHostErrorCode,
   type NativeHostErrorDetails,
   type ScanRepositoriesSuccessResponse,
 } from '#native-protocol'
-import { NativeHostError, type NativeHostErrorPayload } from '../shared/errors/native-host.error.js'
+import { NativeHostError } from '../shared/errors/native-host.error.js'
 
 export type NativeHostResponse =
   | { ok: true }
@@ -16,7 +17,7 @@ export type NativeHostResponse =
     }
 
 export const createNativeHostErrorResponse = (
-  payload: NativeHostErrorPayload & { message?: string },
+  payload: NativeHostErrorData & { message?: string },
 ): NativeHostResponse => {
   const error = new NativeHostError(payload)
 

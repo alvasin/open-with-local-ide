@@ -2,8 +2,6 @@ import { createIdeIcon } from '../ide-icon'
 import { getIdeLabel } from '@/features/open-in-ide'
 import { getSettings } from '@/settings/settings.storage'
 
-type OpenGitHubRepositoryHandler = (button: HTMLButtonElement) => Promise<void>
-
 const OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE = 'data-open-with-local-ide-code-dropdown-item'
 
 const ACTION_LIST_SELECTOR = 'ul[data-component="ActionList"]'
@@ -41,7 +39,7 @@ const readSelectedIdeLabel = async (): Promise<string> => {
 }
 
 const createCodeDropdownItem = async (
-  openGitHubRepository: OpenGitHubRepositoryHandler,
+  openGitHubRepository: (button: HTMLButtonElement) => Promise<void>,
 ): Promise<HTMLLIElement> => {
   const selectedIdeLabel = await readSelectedIdeLabel()
   const buttonLabel = `Open with ${selectedIdeLabel}`
@@ -103,7 +101,7 @@ export const removeInjectedGitHubCodeDropdownItems = () => {
 }
 
 export const syncInjectedGitHubCodeDropdownItem = async (
-  openGitHubRepository: OpenGitHubRepositoryHandler,
+  openGitHubRepository: (button: HTMLButtonElement) => Promise<void>,
 ) => {
   const actionList = findCodeDropdownActionList()
   if (!actionList) return

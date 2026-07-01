@@ -10,7 +10,7 @@ import {
 import { listenGitHubPageChanges } from './navigation'
 import './injected-controls/style.css'
 
-type GitHubContentHandlers = {
+type GitHubOpenActions = {
   openFile: (button: HTMLButtonElement) => Promise<void>
   openRepository: (button: HTMLButtonElement) => Promise<void>
 }
@@ -22,7 +22,7 @@ const removeInjectedGitHubControls = () => {
   removeInjectedGitHubCodeDropdownItems()
 }
 
-const syncCurrentGitHubPage = async ({ openFile, openRepository }: GitHubContentHandlers) => {
+const syncCurrentGitHubPage = async ({ openFile, openRepository }: GitHubOpenActions) => {
   const currentLocation = parseCurrentGitHubLocation()
 
   if (currentLocation?.filePath) {
@@ -40,7 +40,7 @@ const syncCurrentGitHubPage = async ({ openFile, openRepository }: GitHubContent
   removeInjectedGitHubControls()
 }
 
-export const syncGitHubContent = (handlers: GitHubContentHandlers) => {
+export const syncGitHubContent = (handlers: GitHubOpenActions) => {
   return listenGitHubPageChanges(() => {
     void syncCurrentGitHubPage(handlers)
   })

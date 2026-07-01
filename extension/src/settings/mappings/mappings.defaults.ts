@@ -1,3 +1,3 @@
-import type { RepoMappings } from './mappings.types'
+import type { RepositoryMapping } from './mappings.types'
 
-export const defaultRepoMappings = (): RepoMappings => []
+export const defaultRepoMappings = (): RepositoryMapping[] => []
