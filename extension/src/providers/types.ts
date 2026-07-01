@@ -9,6 +9,7 @@ export interface ParsedRemoteLocation {
   repo: string
   repoKey: string
   branch?: string
+  directoryPath?: string
   filePath?: string
   line?: number
 }

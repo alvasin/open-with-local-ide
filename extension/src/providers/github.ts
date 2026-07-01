@@ -53,6 +53,7 @@ export const parseGitHubUrl = (url: string): ParsedRemoteLocation | null => {
     return {
       ...repoPage,
       branch,
+      ...(filePathSegments.length > 0 ? { directoryPath: filePathSegments.join('/') } : {}),
     }
   }
 

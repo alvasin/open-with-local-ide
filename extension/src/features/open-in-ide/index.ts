@@ -24,8 +24,15 @@ export const getNativeHostUiMessage = (response: OpenInIdeResponse): string => {
     case NativeHostErrorCode.RepoPathNotFound:
     case NativeHostErrorCode.RepoPathNotDirectory:
       return 'Local repository path is not available. Check Options.'
-    case NativeHostErrorCode.FilePathMustBeRelative:
+    case NativeHostErrorCode.DirectoryPathMustBeRelative:
+      return 'Remote directory path is invalid.'
+    case NativeHostErrorCode.DirectoryNotFound:
+      return 'Directory was not found in the local repository.'
+    case NativeHostErrorCode.DirectoryPathNotDirectory:
+      return 'Remote directory path is not a local directory.'
     case NativeHostErrorCode.PathTraversalDetected:
+      return 'Remote path is invalid.'
+    case NativeHostErrorCode.FilePathMustBeRelative:
       return 'Remote file path is invalid.'
     case NativeHostErrorCode.FileNotFound:
       return 'File was not found in the local repository.'
@@ -100,6 +107,15 @@ export const createOpenRepositoryRequest = (
 ): CreateOpenInIdeRequestResult =>
   createRequest(remoteRepository, settings, {
     kind: 'repository',
+  })
+
+export const createOpenDirectoryRequest = (
+  remoteDirectory: ParsedRemoteLocation & { directoryPath: string },
+  settings: ExtensionSettings,
+): CreateOpenInIdeRequestResult =>
+  createRequest(remoteDirectory, settings, {
+    kind: 'directory',
+    directoryPath: remoteDirectory.directoryPath,
   })
 
 export type {

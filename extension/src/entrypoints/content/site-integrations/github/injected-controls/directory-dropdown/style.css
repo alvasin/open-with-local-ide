@@ -1,0 +1,77 @@
+.open-with-local-ide-directory-dropdown {
+  position: relative;
+}
+
+.open-with-local-ide-directory-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: 32px;
+  min-width: 42px;
+  padding-inline: var(--base-size-8, 0.5rem);
+}
+
+.open-with-local-ide-directory-button-visual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.open-with-local-ide-directory-button-visual .octicon-triangle-down {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+
+.open-with-local-ide-directory-button-visual .open-with-local-ide-icon {
+  flex: 0 0 auto;
+}
+
+.open-with-local-ide-directory-menu {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + var(--base-size-4, 0.25rem));
+  right: 0;
+  min-width: 220px;
+  padding: var(--base-size-8, 0.5rem);
+  border: 1px solid var(--borderColor-default, #d0d7de);
+  border-radius: var(--borderRadius-medium, 0.375rem);
+  background: var(--overlay-bgColor, #ffffff);
+  box-shadow: var(--shadow-floating-small, 0 8px 24px rgba(140, 149, 159, 0.2));
+}
+
+.open-with-local-ide-directory-menu[hidden] {
+  display: none;
+}
+
+.open-with-local-ide-directory-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 32px;
+  padding: var(--base-size-6, 0.375rem) var(--base-size-8, 0.5rem);
+  border: 0;
+  border-radius: var(--borderRadius-small, 0.1875rem);
+  appearance: none;
+  background: transparent;
+  color: var(--fgColor-default, #25292e);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-body-size-medium, 0.875rem);
+  line-height: var(--text-body-lineHeight-medium, 1.4285);
+  text-align: left;
+}
+
+.open-with-local-ide-directory-menu-item:hover:not(:disabled),
+.open-with-local-ide-directory-menu-item:focus-visible {
+  background-color: var(--control-transparent-bgColor-hover, rgba(208, 215, 222, 0.32));
+  outline: none;
+}
+
+.open-with-local-ide-directory-menu-item:disabled {
+  color: var(--fgColor-muted, #818b98);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
