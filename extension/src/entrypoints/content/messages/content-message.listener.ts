@@ -1,4 +1,4 @@
-import { parseCurrentGitHubLocation } from '../github'
+import { parseCurrentGitHubLocation } from '../site-integrations/github'
 import { ExtensionMessageType } from '@/shared/extension/extension.enum'
 import { isRecord } from '@/shared/record/record.guard'
 
