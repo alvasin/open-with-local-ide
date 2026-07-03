@@ -4,13 +4,13 @@ import { z } from 'zod'
 import { NativeHostErrorCode, type ScanRepositoriesRequest } from '#native-protocol'
 import { NativeHostError } from '../../shared/errors/native-host.error.js'
 
-const DEFAULT_MAX_DEPTH = 4
+const DEFAULT_MAX_DEPTH = 12
 
 const scanRepositoriesRequestSchema = z
   .object({
     action: z.literal('scanRepositories'),
     rootPath: z.string().trim().min(1),
-    maxDepth: z.number().int().min(0).max(8).optional(),
+    maxDepth: z.number().int().min(0).max(15).optional(),
   })
   .strict()
 
