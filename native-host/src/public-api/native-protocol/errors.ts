@@ -22,36 +22,17 @@ export enum NativeHostErrorCode {
   NativeHostFailed = 'NATIVE_HOST_FAILED',
 }
 
-export type NativeHostErrorDetailsByCode = {
-  [NativeHostErrorCode.InvalidMessage]: undefined
-  [NativeHostErrorCode.MessageTooLarge]: undefined
-  [NativeHostErrorCode.UnsupportedAction]: { action?: string } | undefined
-  [NativeHostErrorCode.InvalidRootPath]: { rootPath?: string } | undefined
-  [NativeHostErrorCode.RootPathNotAbsolute]: { rootPath: string }
-  [NativeHostErrorCode.RootPathNotDirectory]: { rootPath: string }
-  [NativeHostErrorCode.RootPathNotAllowed]: { rootPath: string }
-  [NativeHostErrorCode.ScanFailed]: undefined
-  [NativeHostErrorCode.RepoPathMustBeAbsolute]: { repoPath: string }
-  [NativeHostErrorCode.RepoPathNotFound]: { repoPath: string }
-  [NativeHostErrorCode.RepoPathNotDirectory]: { repoPath: string }
-  [NativeHostErrorCode.DirectoryPathMustBeRelative]: { directoryPath: string }
-  [NativeHostErrorCode.DirectoryNotFound]: { directoryPath: string }
-  [NativeHostErrorCode.DirectoryPathNotDirectory]: { directoryPath: string }
-  [NativeHostErrorCode.FilePathMustBeRelative]: { filePath: string }
-  [NativeHostErrorCode.PathTraversalDetected]: { filePath: string }
-  [NativeHostErrorCode.FileNotFound]: { filePath: string }
-  [NativeHostErrorCode.IdeNotSupported]: { ide: string }
-  [NativeHostErrorCode.IdeNotFound]: { ide: string }
-  [NativeHostErrorCode.IdeLaunchFailed]: { ide: string; message?: string }
-  [NativeHostErrorCode.NativeHostFailed]: undefined
+export type NativeHostErrorDetails = {
+  action?: string
+  rootPath?: string
+  repoPath?: string
+  directoryPath?: string
+  filePath?: string
+  ide?: string
+  message?: string
 }
 
-export type NativeHostErrorDetails = NonNullable<NativeHostErrorDetailsByCode[NativeHostErrorCode]>
-
 export type NativeHostErrorData = {
-  [Code in NativeHostErrorCode]: NativeHostErrorDetailsByCode[Code] extends undefined
-    ? { code: Code }
-    : undefined extends NativeHostErrorDetailsByCode[Code]
-      ? { code: Code; details?: NativeHostErrorDetailsByCode[Code] }
-      : { code: Code; details: NativeHostErrorDetailsByCode[Code] }
-}[NativeHostErrorCode]
+  code: NativeHostErrorCode
+  details?: NativeHostErrorDetails
+}
