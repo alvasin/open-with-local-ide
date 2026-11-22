@@ -1,0 +1,24 @@
+{
+  "name": "@open-with-local-ide/protocol",
+  "description": "Browser-safe Native Messaging protocol shared by the extension and the native host.",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "prepare": "tsc -b"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

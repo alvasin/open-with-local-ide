@@ -1,5 +1,31 @@
 {
   "name": "open-with-local-ide",
   "private": true,
-  "version": "0.3.3"
+  "type": "module",
+  "version": "0.4.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "compile": "npm run compile -w apps/extension",
+    "dev": "npm run dev -w apps/extension",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@vue/eslint-config-typescript": "^14.7.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-vue": "^10.9.0",
+    "prettier": "^3.8.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.59.1",
+    "vue-eslint-parser": "^10.4.0"
+  }
 }

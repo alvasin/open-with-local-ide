@@ -1,0 +1,21 @@
+{
+  "name": "@open-with-local-ide/native-host",
+  "description": "Native messaging host for Open With Local IDE.",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "open-with-local-ide-host": "./dist/host.js"
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.41",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@open-with-local-ide/protocol": "*",
+    "zod": "^4.4.3"
+  }
+}

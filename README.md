@@ -10,14 +10,28 @@ MVP scope:
 - Extension: WXT + Vue + TypeScript
 - Native host: Node.js + Chrome Native Messaging
 
-## Install Extension
+## Repository Layout
 
-Install dependencies and build the extension:
+npm workspace: applications in `apps/`, shared libraries in `packages/`.
+
+```text
+apps/extension/       Chrome extension (WXT + Vue)
+apps/native-host/     Native Messaging host (Node.js)
+packages/protocol/    @open-with-local-ide/protocol — message contract (zod schemas, error codes, version)
+```
+
+Install dependencies once from the repository root:
 
 ```bash
-cd extension
 npm install
-npm run build
+```
+
+## Install Extension
+
+Build the extension:
+
+```bash
+npm run build -w apps/extension
 ```
 
 Open Chrome extensions page:
@@ -33,31 +47,28 @@ Then:
 3. Select:
 
 ```text
-extension/.output/chrome-mv3
+apps/extension/.output/chrome-mv3
 ```
 
-After loading the extension, copy its `Extension ID`. It is required for native host installation.
+The extension ID is pinned by the manifest `key` and is always:
+
+```text
+cmlcpcbhmjmapaojcnfpcecmfcpbopho
+```
 
 ## Install Native Host
 
-Install dependencies and build the native host:
+Build the native host (after `npm install` in the repository root):
 
 ```bash
-cd native-host
-npm install
+cd apps/native-host
 npm run build
 ```
 
 Register the native host for your installed extension:
 
 ```bash
-node install-host.js <EXTENSION_ID>
-```
-
-Example:
-
-```bash
-node install-host.js abcdefghijklmnopqrstuvwxyzabcdef
+node install-host.js cmlcpcbhmjmapaojcnfpcecmfcpbopho
 ```
 
 The installer creates the Chrome Native Messaging manifest for host:
@@ -71,7 +82,7 @@ com.local.repo_ide_opener
 Remove the registered native host manifest:
 
 ```bash
-cd native-host
+cd apps/native-host
 node uninstall-host.js
 ```
 
@@ -128,7 +139,8 @@ VS Code opens the local file at the selected line.
 ## Notes
 
 - The extension talks to the native host via `chrome.runtime.sendNativeMessage`.
-- The extension consumes the native host's stable browser-safe protocol API through `native-host/src/public-api/index.ts` via the `@native-protocol` alias. Deep imports from `native-host/src` are intentionally forbidden.
+- The extension and the native host share the message contract through the `@open-with-local-ide/protocol` package. The apps never import from each other.
+- Every request carries a protocol version. If the extension and the native host were built from different protocol versions, the extension shows a version mismatch error: rebuild and reinstall the native host.
 - The extension does not start local programs directly.
 - The native host validates paths before opening files.
 - `filePath` must stay inside the configured `repoPath`.
