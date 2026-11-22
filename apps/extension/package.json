@@ -1,0 +1,32 @@
+{
+  "name": "@open-with-local-ide/extension",
+  "description": "Open GitHub files in your local IDE from the browser.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:edge": "wxt -b edge",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "compile": "vue-tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "@open-with-local-ide/protocol": "*",
+    "@iconify-icons/octicon": "^1.2.46",
+    "@iconify-icons/simple-icons": "^1.2.74",
+    "iconify-icon": "^3.0.2",
+    "sass-embedded": "^1.100.0",
+    "vue": "^3.5.29"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.42",
+    "@wxt-dev/module-vue": "^1.0.3",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.2.5",
+    "wxt": "^0.20.25"
+  }
+}

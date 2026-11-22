@@ -1,0 +1,9 @@
+**/node_modules/
+**/dist/
+apps/extension/.output/
+apps/extension/.wxt/
+package-lock.json
+.codex/
+claude-design/
+AGENTS.md
+apps/native-host/com.local.repo_ide_opener.json

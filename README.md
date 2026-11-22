@@ -10,14 +10,28 @@ MVP scope:
 - Extension: WXT + Vue + TypeScript
 - Native host: Node.js + Chrome Native Messaging
 
-## Install Extension
+## Repository Layout
 
-Install dependencies and build the extension:
+npm workspace: applications in `apps/`, shared libraries in `packages/`.
+
+```text
+apps/extension/       Chrome extension (WXT + Vue)
+apps/native-host/     Native Messaging host (Node.js)
+packages/protocol/    @open-with-local-ide/protocol — message contract shared by both apps
+```
+
+Install dependencies once from the repository root:
 
 ```bash
-cd extension
 npm install
-npm run build
+```
+
+## Install Extension
+
+Build the extension:
+
+```bash
+npm run build -w apps/extension
 ```
 
 Open Chrome extensions page:
@@ -33,18 +47,17 @@ Then:
 3. Select:
 
 ```text
-extension/.output/chrome-mv3
+apps/extension/.output/chrome-mv3
 ```
 
 After loading the extension, copy its `Extension ID`. It is required for native host installation.
 
 ## Install Native Host
 
-Install dependencies and build the native host:
+Build the native host (after `npm install` in the repository root):
 
 ```bash
-cd native-host
-npm install
+cd apps/native-host
 npm run build
 ```
 
@@ -71,7 +84,7 @@ com.local.repo_ide_opener
 Remove the registered native host manifest:
 
 ```bash
-cd native-host
+cd apps/native-host
 node uninstall-host.js
 ```
 
@@ -128,7 +141,7 @@ VS Code opens the local file at the selected line.
 ## Notes
 
 - The extension talks to the native host via `chrome.runtime.sendNativeMessage`.
-- The extension consumes the native host's stable browser-safe protocol API through `native-host/src/public-api/index.ts` via the `@native-protocol` alias. Deep imports from `native-host/src` are intentionally forbidden.
+- The extension and the native host share the message contract through the `@open-with-local-ide/protocol` package. The apps never import from each other.
 - The extension does not start local programs directly.
 - The native host validates paths before opening files.
 - `filePath` must stay inside the configured `repoPath`.
