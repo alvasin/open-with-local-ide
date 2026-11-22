@@ -1,7 +1,3 @@
-export { sendNativeMessage } from './native-client'
-export { ExtensionNativeErrorCode } from './native-error.types'
-export {
-  isNativeHostErrorResponseLike,
-  readNativeHostDetails,
-  type NativeHostErrorResponseLike,
-} from './native-response'
+export { requestNativeHost } from './native-client'
+export { ExtensionNativeErrorCode, type ExtensionNativeErrorResponse } from './native-error.types'
+export type { NativeHostResult } from './native-response'

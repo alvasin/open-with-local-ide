@@ -1,20 +1,13 @@
-import {
-  type NativeHostErrorData,
-  NativeHostErrorCode,
-  type NativeHostErrorDetails,
-  type ScanRepositoriesSuccessResponse,
+import type {
+  NativeHostErrorData,
+  NativeHostErrorResponse,
+  OpenInIdeSuccessResponse,
+  ScanRepositoriesSuccessResponse,
 } from '@open-with-local-ide/protocol'
 import { NativeHostError } from '../shared/errors/native-host.error.js'
 
 export type NativeHostResponse =
-  | { ok: true }
-  | ScanRepositoriesSuccessResponse
-  | {
-      ok: false
-      errorCode: NativeHostErrorCode
-      error: string
-      details?: NativeHostErrorDetails
-    }
+  OpenInIdeSuccessResponse | ScanRepositoriesSuccessResponse | NativeHostErrorResponse
 
 export const createNativeHostErrorResponse = (
   payload: NativeHostErrorData & { message?: string },

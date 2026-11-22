@@ -21,18 +21,3 @@ export enum NativeHostErrorCode {
   IdeLaunchFailed = 'IDE_LAUNCH_FAILED',
   NativeHostFailed = 'NATIVE_HOST_FAILED',
 }
-
-export type NativeHostErrorDetails = {
-  action?: string
-  rootPath?: string
-  repoPath?: string
-  directoryPath?: string
-  filePath?: string
-  ide?: string
-  message?: string
-}
-
-export type NativeHostErrorData = {
-  code: NativeHostErrorCode
-  details?: NativeHostErrorDetails
-}

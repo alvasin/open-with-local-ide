@@ -1,18 +1,13 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { z } from 'zod'
-import { NativeHostErrorCode, type ScanRepositoriesRequest } from '@open-with-local-ide/protocol'
+import {
+  NativeHostErrorCode,
+  scanRepositoriesRequestSchema,
+  type ScanRepositoriesRequest,
+} from '@open-with-local-ide/protocol'
 import { NativeHostError } from '../../shared/errors/native-host.error.js'
 
 const DEFAULT_MAX_DEPTH = 12
-
-const scanRepositoriesRequestSchema = z
-  .object({
-    action: z.literal('scanRepositories'),
-    rootPath: z.string().trim().min(1),
-    maxDepth: z.number().int().min(0).max(15).optional(),
-  })
-  .strict()
 
 export type ValidScanRepositoriesRequest = ScanRepositoriesRequest & {
   rootPath: string

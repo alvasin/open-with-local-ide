@@ -20,7 +20,8 @@
     "@iconify-icons/simple-icons": "^1.2.74",
     "iconify-icon": "^3.0.2",
     "sass-embedded": "^1.100.0",
-    "vue": "^3.5.29"
+    "vue": "^3.5.29",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.42",

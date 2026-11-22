@@ -1,9 +1,6 @@
-import type { z } from 'zod'
-import type { openInIdeRequestSchema } from './open-in-ide.validation.js'
+import type { ParsedOpenInIdeRequest } from '@open-with-local-ide/protocol'
 
-export type NativeOpenInIdeRequest = z.infer<typeof openInIdeRequestSchema>
-
-type ValidOpenInIdeRequestBase = Omit<NativeOpenInIdeRequest, 'repoPath' | 'target'> & {
+type ValidOpenInIdeRequestBase = Omit<ParsedOpenInIdeRequest, 'repoPath' | 'target'> & {
   repoPath: string
 }
 

@@ -3,6 +3,7 @@
   "description": "Browser-safe Native Messaging protocol shared by the extension and the native host.",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "source": "./src/index.ts",
@@ -16,5 +17,8 @@
   },
   "devDependencies": {
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
   }
 }

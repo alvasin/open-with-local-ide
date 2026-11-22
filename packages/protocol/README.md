@@ -1,24 +1,39 @@
 # @open-with-local-ide/protocol
 
-Native Messaging contract shared by the extension and the native host: request and response
-types, error codes, and other protocol constants.
+Native Messaging contract shared by the extension and the native host. Both apps depend on this
+package; they never import from each other.
 
-Both apps depend on this package; they never import from each other.
-
-```ts
-import { NativeHostErrorCode, type OpenInIdeRequest } from '@open-with-local-ide/protocol'
+```text
+src/
+├─ index.ts                     public entrypoint
+├─ errors.ts                    NativeHostErrorCode
+├─ schemas.ts                   error response schemas
+└─ actions/
+   ├─ open-in-ide.ts            openInIde request / success response
+   └─ scan-repositories.ts      scanRepositories request / success response
 ```
 
-Only the package root is public. Deep imports into `src/` are not allowed.
+```ts
+import {
+  NativeHostErrorCode,
+  openInIdeRequestSchema,
+  type OpenInIdeRequest,
+} from '@open-with-local-ide/protocol'
+```
 
-Keep this package safe for both runtimes:
+## Rules
 
-- no Node.js APIs;
-- no Browser APIs;
-- no filesystem, process, or installer logic;
-- no UI text or localization.
-
-ESLint enforces these boundaries.
+- zod schemas are the single source of truth. TypeScript types are inferred from them; do not
+  declare parallel hand-written types or guards.
+- The native host validates requests with the request schemas. The extension validates native host
+  responses with the response schemas.
+- Request schemas are strict (unknown fields are rejected). Response schemas are not strict, so
+  an extension tolerates new optional response fields.
+- Only the package root is public. Deep imports into `src/` are not allowed.
+- Keep this package runtime-neutral: no Node.js APIs, no Browser APIs, no filesystem, process, or
+  installer logic, and no UI text. ESLint enforces this.
+- Keep `"sideEffects": false` in `package.json`, so bundles that only need constants do not pull
+  in zod.
 
 ## How it is consumed
 

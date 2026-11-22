@@ -1,24 +1,26 @@
-import { NativeHostErrorCode, type NativeHostErrorDetails } from '@open-with-local-ide/protocol'
-import { isRecord } from '@/shared/record/record.guard'
+import {
+  nativeHostErrorResponseSchema,
+  type NativeHostErrorResponse,
+} from '@open-with-local-ide/protocol'
+import type { ZodType } from 'zod'
+import { ExtensionNativeErrorCode, type ExtensionNativeErrorResponse } from './native-error.types'
 
-const isNativeHostErrorCode = (value: unknown): value is NativeHostErrorCode =>
-  typeof value === 'string' &&
-  Object.values(NativeHostErrorCode).includes(value as NativeHostErrorCode)
+export type NativeHostResult<TSuccess> =
+  TSuccess | NativeHostErrorResponse | ExtensionNativeErrorResponse
 
-export const readNativeHostDetails = (value: unknown): NativeHostErrorDetails | undefined =>
-  isRecord(value) ? value : undefined
+export const parseNativeHostResponse = <TSuccess>(
+  response: unknown,
+  successSchema: ZodType<TSuccess>,
+): NativeHostResult<TSuccess> => {
+  const success = successSchema.safeParse(response)
+  if (success.success) return success.data
 
-export type NativeHostErrorResponseLike = {
-  ok: false
-  errorCode: NativeHostErrorCode
-  error: string
-  details?: unknown
+  const failure = nativeHostErrorResponseSchema.safeParse(response)
+  if (failure.success) return failure.data
+
+  return {
+    ok: false,
+    errorCode: ExtensionNativeErrorCode.InvalidNativeHostResponse,
+    error: 'Native host returned an invalid response',
+  }
 }
-
-export const isNativeHostErrorResponseLike = (
-  value: unknown,
-): value is NativeHostErrorResponseLike =>
-  isRecord(value) &&
-  value.ok === false &&
-  isNativeHostErrorCode(value.errorCode) &&
-  typeof value.error === 'string'
