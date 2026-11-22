@@ -50,7 +50,11 @@ Then:
 apps/extension/.output/chrome-mv3
 ```
 
-After loading the extension, copy its `Extension ID`. It is required for native host installation.
+The extension ID is pinned by the manifest `key` and is always:
+
+```text
+cmlcpcbhmjmapaojcnfpcecmfcpbopho
+```
 
 ## Install Native Host
 
@@ -64,13 +68,7 @@ npm run build
 Register the native host for your installed extension:
 
 ```bash
-node install-host.js <EXTENSION_ID>
-```
-
-Example:
-
-```bash
-node install-host.js abcdefghijklmnopqrstuvwxyzabcdef
+node install-host.js cmlcpcbhmjmapaojcnfpcecmfcpbopho
 ```
 
 The installer creates the Chrome Native Messaging manifest for host:
