@@ -2,6 +2,7 @@ export enum NativeHostErrorCode {
   InvalidMessage = 'INVALID_MESSAGE',
   MessageTooLarge = 'MESSAGE_TOO_LARGE',
   UnsupportedAction = 'UNSUPPORTED_ACTION',
+  ProtocolVersionMismatch = 'PROTOCOL_VERSION_MISMATCH',
   InvalidRootPath = 'INVALID_ROOT_PATH',
   RootPathNotAbsolute = 'ROOT_PATH_NOT_ABSOLUTE',
   RootPathNotDirectory = 'ROOT_PATH_NOT_DIRECTORY',

@@ -17,7 +17,7 @@ npm workspace: applications in `apps/`, shared libraries in `packages/`.
 ```text
 apps/extension/       Chrome extension (WXT + Vue)
 apps/native-host/     Native Messaging host (Node.js)
-packages/protocol/    @open-with-local-ide/protocol — message contract shared by both apps
+packages/protocol/    @open-with-local-ide/protocol — message contract (zod schemas, error codes, version)
 ```
 
 Install dependencies once from the repository root:
@@ -142,6 +142,7 @@ VS Code opens the local file at the selected line.
 
 - The extension talks to the native host via `chrome.runtime.sendNativeMessage`.
 - The extension and the native host share the message contract through the `@open-with-local-ide/protocol` package. The apps never import from each other.
+- Every request carries a protocol version. If the extension and the native host were built from different protocol versions, the extension shows a version mismatch error: rebuild and reinstall the native host.
 - The extension does not start local programs directly.
 - The native host validates paths before opening files.
 - `filePath` must stay inside the configured `repoPath`.

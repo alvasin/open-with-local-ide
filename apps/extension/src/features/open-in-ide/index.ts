@@ -1,6 +1,6 @@
 import { NativeHostErrorCode, type OpenInIdeRequest } from '@open-with-local-ide/protocol'
 import type { CreateOpenInIdeRequestResult, OpenInIdeResponse } from './open-in-ide.types'
-import { ExtensionNativeErrorCode } from '@/native-messaging'
+import { ExtensionNativeErrorCode, PROTOCOL_VERSION_MISMATCH_MESSAGE } from '@/native-messaging'
 import type { ParsedRemoteLocation } from '@/providers/types'
 import { isSameRepository } from '@/settings/mappings/mappings'
 import type { ExtensionSettings } from '@/settings/settings.types'
@@ -42,6 +42,8 @@ export const getNativeHostUiMessage = (response: OpenInIdeResponse): string => {
       return 'IDE executable was not found.'
     case NativeHostErrorCode.IdeLaunchFailed:
       return 'Failed to launch IDE.'
+    case NativeHostErrorCode.ProtocolVersionMismatch:
+      return PROTOCOL_VERSION_MISMATCH_MESSAGE
     case NativeHostErrorCode.InvalidRootPath:
     case NativeHostErrorCode.RootPathNotAbsolute:
     case NativeHostErrorCode.RootPathNotDirectory:

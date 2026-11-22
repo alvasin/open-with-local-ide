@@ -1,4 +1,4 @@
-import type { NativeHostRequest } from '@open-with-local-ide/protocol'
+import { PROTOCOL_VERSION, type NativeHostRequest } from '@open-with-local-ide/protocol'
 import type { ZodType } from 'zod'
 import { ExtensionNativeErrorCode } from './native-error.types'
 import { parseNativeHostResponse, type NativeHostResult } from './native-response'
@@ -11,7 +11,10 @@ const sendNativeMessage = async (message: object): Promise<unknown> =>
     chrome.runtime.sendNativeMessage(NATIVE_HOST_NAME, message, callback)
   })
 
-/** Sends a request to the native host and validates the response against the protocol schemas. */
+/**
+ * Sends a request to the native host and validates the response against the protocol schemas.
+ * Every request is stamped with the protocol version this extension build was compiled with.
+ */
 export const requestNativeHost = async <TSuccess>(
   request: NativeHostRequest,
   successSchema: ZodType<TSuccess>,
@@ -19,7 +22,7 @@ export const requestNativeHost = async <TSuccess>(
   let response: unknown
 
   try {
-    response = await sendNativeMessage(request)
+    response = await sendNativeMessage({ ...request, protocolVersion: PROTOCOL_VERSION })
   } catch (error) {
     return {
       ok: false,

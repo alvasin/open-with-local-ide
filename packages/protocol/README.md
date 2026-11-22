@@ -6,8 +6,9 @@ package; they never import from each other.
 ```text
 src/
 ├─ index.ts                     public entrypoint
+├─ version.ts                   PROTOCOL_VERSION
 ├─ errors.ts                    NativeHostErrorCode
-├─ schemas.ts                   error response schemas
+├─ schemas.ts                   request envelope and error response schemas
 └─ actions/
    ├─ open-in-ide.ts            openInIde request / success response
    └─ scan-repositories.ts      scanRepositories request / success response
@@ -29,6 +30,10 @@ import {
   responses with the response schemas.
 - Request schemas are strict (unknown fields are rejected). Response schemas are not strict, so
   an extension tolerates new optional response fields.
+- `protocolVersion` is transport metadata, not part of action schemas. The extension's Native
+  Messaging client adds it; the native host checks and strips it before dispatch.
+- Increment `PROTOCOL_VERSION` when a change breaks compatibility between extension and native host
+  builds.
 - Only the package root is public. Deep imports into `src/` are not allowed.
 - Keep this package runtime-neutral: no Node.js APIs, no Browser APIs, no filesystem, process, or
   installer logic, and no UI text. ESLint enforces this.

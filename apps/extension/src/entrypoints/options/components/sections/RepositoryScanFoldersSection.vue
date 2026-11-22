@@ -133,7 +133,7 @@ import {
   scanRepositoryFolder,
   type RepositoryScanConflict,
 } from '@/features/repository-scanning'
-import { ExtensionNativeErrorCode } from '@/native-messaging'
+import { ExtensionNativeErrorCode, PROTOCOL_VERSION_MISMATCH_MESSAGE } from '@/native-messaging'
 import { getRepositoryKey } from '@/settings/mappings/mappings'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 import { getSettings } from '@/settings/settings.storage'
@@ -228,6 +228,8 @@ const scanErrorMessage = (errorCode: string): string => {
       return 'The configured path is not a directory.'
     case NativeHostErrorCode.RootPathNotAllowed:
       return 'Scanning a filesystem or drive root is not allowed.'
+    case NativeHostErrorCode.ProtocolVersionMismatch:
+      return PROTOCOL_VERSION_MISMATCH_MESSAGE
     case ExtensionNativeErrorCode.NativeHostConnectionFailed:
       return 'Native host is unavailable.'
     case ExtensionNativeErrorCode.InvalidNativeHostResponse:

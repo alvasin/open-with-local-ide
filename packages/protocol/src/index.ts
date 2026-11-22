@@ -1,9 +1,11 @@
 import type { OpenInIdeRequest } from './actions/open-in-ide.js'
 import type { ScanRepositoriesRequest } from './actions/scan-repositories.js'
 
+export { PROTOCOL_VERSION } from './version.js'
 export { NativeHostErrorCode } from './errors.js'
 export {
   nativeHostErrorResponseSchema,
+  nativeHostRequestEnvelopeSchema,
   type NativeHostErrorData,
   type NativeHostErrorDetails,
   type NativeHostErrorResponse,
