@@ -1,32 +1,28 @@
-import { isSameRepository } from '@/settings/mappings/mappings'
-import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
-import { getSettings, saveSettings } from '@/settings/settings.storage'
+import { isSameRepository } from '@/providers/repository'
+import { updateSettings } from '@/settings/settings.storage'
 
-export const saveManualMapping = async (input: { owner: string; repo: string; repoPath: string }): Promise<void> => {
-  const current = await getSettings()
-  const normalizedInput = {
-    provider: 'github' as const,
-    owner: input.owner.trim().toLowerCase(),
-    repo: input.repo.trim().toLowerCase(),
-  }
-  const existing = current.mappings.find((mapping) => isSameRepository(mapping, normalizedInput))
-  const mapping: RepositoryMapping = {
-    id: existing?.id ?? crypto.randomUUID(),
-    ...normalizedInput,
-    repoPath: input.repoPath.trim(),
-    source: 'manual',
-  }
+/** Adds a manual mapping, or turns the existing mapping of the same repository into it. */
+export const saveManualMapping = (input: { owner: string; repo: string; repoPath: string }): Promise<void> =>
+  updateSettings((settings) => {
+    const repository = {
+      provider: 'github' as const,
+      owner: input.owner.trim().toLowerCase(),
+      repo: input.repo.trim().toLowerCase(),
+    }
+    const repoPath = input.repoPath.trim()
+    const existing = settings.mappings.find((mapping) => isSameRepository(mapping, repository))
 
-  await saveSettings({
-    ...current,
-    mappings: [...current.mappings.filter((candidate) => !isSameRepository(candidate, mapping)), mapping],
+    if (!existing) {
+      settings.mappings.push({ id: crypto.randomUUID(), ...repository, repoPath, source: 'manual' })
+      return
+    }
+
+    existing.repoPath = repoPath
+    existing.source = 'manual'
+    existing.scanFolderId = undefined
   })
-}
 
-export const deleteRepositoryMapping = async (mappingId: string): Promise<void> => {
-  const current = await getSettings()
-  await saveSettings({
-    ...current,
-    mappings: current.mappings.filter((mapping) => mapping.id !== mappingId),
+export const deleteRepositoryMapping = (mappingId: string): Promise<void> =>
+  updateSettings((settings) => {
+    settings.mappings = settings.mappings.filter(({ id }) => id !== mappingId)
   })
-}

@@ -11,18 +11,26 @@
           <dd>{{ currentLocation.repoKey }}</dd>
         </div>
 
-        <div class="current-location__detail">
-          <dt>
-            {{ currentLocation.filePath ? 'File' : currentLocation.directoryPath ? 'Folder' : 'Target' }}
-          </dt>
-          <dd>
-            {{ currentLocation.filePath ?? currentLocation.directoryPath ?? 'Repository root' }}
-          </dd>
+        <template v-if="currentLocation.kind === 'file'">
+          <div class="current-location__detail">
+            <dt>File</dt>
+            <dd>{{ currentLocation.filePath }}</dd>
+          </div>
+
+          <div class="current-location__detail">
+            <dt>Line</dt>
+            <dd>{{ currentLocation.line ?? '-' }}</dd>
+          </div>
+        </template>
+
+        <div v-else-if="currentLocation.kind === 'directory'" class="current-location__detail">
+          <dt>Folder</dt>
+          <dd>{{ currentLocation.directoryPath }}</dd>
         </div>
 
-        <div class="current-location__detail">
-          <dt>Line</dt>
-          <dd>{{ currentLocation.line ?? '-' }}</dd>
+        <div v-else class="current-location__detail">
+          <dt>Target</dt>
+          <dd>Repository root</dd>
         </div>
 
         <div class="current-location__detail">

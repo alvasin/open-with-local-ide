@@ -27,7 +27,7 @@ export const requestNativeHost = async <TSuccess>(
     return {
       ok: false,
       errorCode: ExtensionNativeErrorCode.NativeHostConnectionFailed,
-      error: error instanceof Error ? error.message : 'Failed to send native message',
+      ...(error instanceof Error ? { details: { message: error.message } } : {}),
     }
   }
 

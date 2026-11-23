@@ -1,8 +1,10 @@
-import { nativeHostErrorResponseSchema, type NativeHostErrorResponse } from '@open-with-local-ide/protocol'
+import { nativeHostErrorResponseSchema, type NativeHostErrorDetails } from '@open-with-local-ide/protocol'
 import type { ZodType } from 'zod'
-import { ExtensionNativeErrorCode, type ExtensionNativeErrorResponse } from './native-error.types'
+import { ExtensionNativeErrorCode } from './native-error.types'
 
-export type NativeHostResult<TSuccess> = TSuccess | NativeHostErrorResponse | ExtensionNativeErrorResponse
+/** Any failed native host call: an error from the host itself or from talking to it. */
+export type NativeHostFailure = { ok: false; errorCode: string; details?: NativeHostErrorDetails }
+export type NativeHostResult<TSuccess> = TSuccess | NativeHostFailure
 
 export const parseNativeHostResponse = <TSuccess>(
   response: unknown,
@@ -14,9 +16,5 @@ export const parseNativeHostResponse = <TSuccess>(
   const failure = nativeHostErrorResponseSchema.safeParse(response)
   if (failure.success) return failure.data
 
-  return {
-    ok: false,
-    errorCode: ExtensionNativeErrorCode.InvalidNativeHostResponse,
-    error: 'Native host returned an invalid response',
-  }
+  return { ok: false, errorCode: ExtensionNativeErrorCode.InvalidNativeHostResponse }
 }

@@ -1,22 +1,19 @@
-import type { OpenInIdeRequest } from '@open-with-local-ide/protocol'
 import { openInIde, type OpenInIdeResponse } from '@/features/open-in-ide'
-import { ExtensionMessageType } from '@/shared/extension/extension.enum'
-import { isRecord } from '@/shared/record/record.guard'
-
-type OpenInIdeMessage = {
-  type: ExtensionMessageType.OpenInIde
-  request: OpenInIdeRequest
-}
-
-const isOpenInIdeMessage = (message: unknown): message is OpenInIdeMessage =>
-  isRecord(message) && message.type === ExtensionMessageType.OpenInIde && isRecord(message.request)
+import { readExtensionMessage } from '@/shared/extension/extension-messages'
+import { openOptionsPage } from '@/shared/extension/options-page'
 
 // TODO: Вынести работу с service воркерами chrome в один централизованный файл-обертку.
 
 export default defineBackground(() => {
-  browser.runtime.onMessage.addListener(async (message): Promise<OpenInIdeResponse | undefined> => {
-    if (!isOpenInIdeMessage(message)) return
+  browser.runtime.onMessage.addListener(async (rawMessage): Promise<OpenInIdeResponse | undefined> => {
+    const message = readExtensionMessage(rawMessage)
 
-    return openInIde(message.request)
+    switch (message?.type) {
+      case 'openInIde':
+        return openInIde(message.request)
+      case 'openOptions':
+        await openOptionsPage(message.repoKey)
+        return
+    }
   })
 })

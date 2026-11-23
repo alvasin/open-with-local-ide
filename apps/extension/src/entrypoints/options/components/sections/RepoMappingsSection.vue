@@ -47,17 +47,18 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
+import { useSettings } from '../../composables/use-settings'
 import { deleteRepositoryMapping, saveManualMapping } from '@/features/repository-mappings/repository-mappings'
-import { getRepositoryKey } from '@/settings/mappings/mappings'
-import { getSettings } from '@/settings/settings.storage'
-import type { ExtensionSettings } from '@/settings/settings.types'
+import { getRepositoryKey } from '@/providers/repository'
 
-const settings = ref<ExtensionSettings | null>(null)
+const { settings, isLoading, hasLoadError } = useSettings()
+
 const repoKey = ref('')
 const localPath = ref('')
-const status = ref('')
-const isLoading = ref(true)
+const actionStatus = ref('')
 const isSaving = ref(false)
+
+const status = computed(() => (hasLoadError.value ? 'Failed to load mappings.' : actionStatus.value))
 
 const mappings = computed(() =>
   [...(settings.value?.mappings ?? [])].sort((left, right) =>
@@ -65,40 +66,29 @@ const mappings = computed(() =>
   ),
 )
 
-const loadMappings = async () => {
-  isLoading.value = true
-  try {
-    settings.value = await getSettings()
-  } catch {
-    status.value = 'Failed to load mappings.'
-  } finally {
-    isLoading.value = false
-  }
-}
-
 const saveMapping = async () => {
   const match = repoKey.value.trim().match(/^github\.com\/([^/]+)\/([^/]+)$/i)
   const nextLocalPath = localPath.value.trim()
 
   if (!match?.[1] || !match[2] || !nextLocalPath) {
-    status.value = 'Enter github.com/owner/repo and a local path.'
+    actionStatus.value = 'Enter github.com/owner/repo and a local path.'
     return
   }
 
   isSaving.value = true
-  status.value = ''
+  actionStatus.value = ''
+
   try {
     await saveManualMapping({
       owner: match[1],
       repo: match[2],
       repoPath: nextLocalPath,
     })
-    await loadMappings()
     repoKey.value = ''
     localPath.value = ''
-    status.value = 'Mapping saved.'
+    actionStatus.value = 'Mapping saved.'
   } catch {
-    status.value = 'Failed to save mapping.'
+    actionStatus.value = 'Failed to save mapping.'
   } finally {
     isSaving.value = false
   }
@@ -106,13 +96,13 @@ const saveMapping = async () => {
 
 const removeMapping = async (mappingId: string) => {
   isSaving.value = true
-  status.value = ''
+  actionStatus.value = ''
+
   try {
     await deleteRepositoryMapping(mappingId)
-    await loadMappings()
-    status.value = 'Mapping deleted.'
+    actionStatus.value = 'Mapping deleted.'
   } catch {
-    status.value = 'Failed to delete mapping.'
+    actionStatus.value = 'Failed to delete mapping.'
   } finally {
     isSaving.value = false
   }
@@ -120,7 +110,6 @@ const removeMapping = async (mappingId: string) => {
 
 onMounted(() => {
   repoKey.value = new URLSearchParams(window.location.search).get('repoKey') ?? ''
-  void loadMappings()
 })
 </script>
 

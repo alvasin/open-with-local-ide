@@ -1,7 +1,3 @@
 export { requestNativeHost } from './native-client'
-export {
-  ExtensionNativeErrorCode,
-  PROTOCOL_VERSION_MISMATCH_MESSAGE,
-  type ExtensionNativeErrorResponse,
-} from './native-error.types'
-export type { NativeHostResult } from './native-response'
+export { ExtensionNativeErrorCode } from './native-error.types'
+export type { NativeHostFailure, NativeHostResult } from './native-response'

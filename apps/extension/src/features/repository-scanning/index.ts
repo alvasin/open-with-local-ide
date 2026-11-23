@@ -1,112 +1,102 @@
+import { scanRepositoriesSuccessResponseSchema, type ScanSkippedEntry } from '@open-with-local-ide/protocol'
 import { isAbsolutePath, normalizePathForComparison } from './path-comparison'
-import { RepositoryScanningErrorCode } from './repository-scanning.errors'
-import { mergeDiscoveredRepositories } from './repository-scanning.merge'
-import { scanRepositoriesInHost } from './repository-scanning.native'
-import type { AddScanFolderResult, RepositoryScanConflict, ScanFolderResult } from './repository-scanning.types'
-import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
-import type { RepositoryScanFolder } from '@/settings/repository-scanning/repository-scanning.types'
-import { getSettings, saveSettings } from '@/settings/settings.storage'
+import { mergeDiscoveredRepositories, type RepositoryScanConflict } from './repository-scanning.merge'
+import { requestNativeHost, type NativeHostFailure } from '@/native-messaging'
+import type { RepositoryScanFolder } from '@/settings/settings.schema'
+import { getSettings, updateSettings } from '@/settings/settings.storage'
 
-export { RepositoryScanningErrorCode } from './repository-scanning.errors'
-export type { AddScanFolderResult, RepositoryScanConflict, ScanFolderResult } from './repository-scanning.types'
+export type { RepositoryScanConflict } from './repository-scanning.merge'
+
+export type AddScanFolderError = 'required' | 'not_absolute' | 'duplicate'
+
+type AddScanFolderResult = { ok: true; folder: RepositoryScanFolder } | { ok: false; reason: AddScanFolderError }
+
+type ScanFolderResult =
+  | {
+      ok: true
+      conflicts: RepositoryScanConflict[]
+      skipped: ScanSkippedEntry[]
+      importedCount: number
+    }
+  | NativeHostFailure
+
+// Returned when the folder is deleted while its scan is still running.
+const SCAN_FOLDER_NOT_FOUND = 'SCAN_FOLDER_NOT_FOUND'
 
 export const addRepositoryScanFolder = async (path: string): Promise<AddScanFolderResult> => {
   const folderPath = path.trim()
   if (!folderPath) return { ok: false, reason: 'required' }
   if (!isAbsolutePath(folderPath)) return { ok: false, reason: 'not_absolute' }
 
-  const current = await getSettings()
-  const normalizedPath = normalizePathForComparison(folderPath)
-  if (current.repositoryScanFolders.some((folder) => normalizePathForComparison(folder.path) === normalizedPath)) {
-    return { ok: false, reason: 'duplicate' }
-  }
+  return updateSettings((settings): AddScanFolderResult => {
+    const normalizedPath = normalizePathForComparison(folderPath)
+    const isDuplicate = settings.repositoryScanFolders.some(
+      (folder) => normalizePathForComparison(folder.path) === normalizedPath,
+    )
+    if (isDuplicate) return { ok: false, reason: 'duplicate' }
 
-  const folder: RepositoryScanFolder = {
-    id: crypto.randomUUID(),
-    path: folderPath,
-    createdAt: new Date().toISOString(),
-  }
+    const folder: RepositoryScanFolder = {
+      id: crypto.randomUUID(),
+      path: folderPath,
+      createdAt: new Date().toISOString(),
+    }
+    settings.repositoryScanFolders.push(folder)
 
-  await saveSettings({
-    ...current,
-    repositoryScanFolders: [...current.repositoryScanFolders, folder],
+    return { ok: true, folder }
   })
-
-  return { ok: true, folder }
 }
 
 export const scanRepositoryFolder = async (scanFolderId: string): Promise<ScanFolderResult> => {
-  const current = await getSettings()
-  const scanFolder = current.repositoryScanFolders.find((folder) => folder.id === scanFolderId)
-  if (!scanFolder) return { ok: false, errorCode: RepositoryScanningErrorCode.ScanFolderNotFound }
+  const { repositoryScanFolders } = await getSettings()
+  const scanFolder = repositoryScanFolders.find((folder) => folder.id === scanFolderId)
+  if (!scanFolder) return { ok: false, errorCode: SCAN_FOLDER_NOT_FOUND }
 
-  const response = await scanRepositoriesInHost({
-    action: 'scanRepositories',
-    rootPath: scanFolder.path,
-  })
-  if (!response.ok) return { ok: false, errorCode: response.errorCode }
+  const response = await requestNativeHost(
+    { action: 'scanRepositories', rootPath: scanFolder.path },
+    scanRepositoriesSuccessResponseSchema,
+  )
+  if (!response.ok) return response
 
-  const latest = await getSettings()
-  if (!latest.repositoryScanFolders.some((folder) => folder.id === scanFolderId)) {
-    return { ok: false, errorCode: RepositoryScanningErrorCode.ScanFolderNotFound }
-  }
+  // The scan can take a while, so merge into the settings as they are now, not as they were.
+  return updateSettings((settings): ScanFolderResult => {
+    const folder = settings.repositoryScanFolders.find(({ id }) => id === scanFolderId)
+    if (!folder) return { ok: false, errorCode: SCAN_FOLDER_NOT_FOUND }
 
-  const mergeResult = mergeDiscoveredRepositories(latest.mappings, response.repositories, scanFolderId)
+    const { added, conflicts } = mergeDiscoveredRepositories(settings.mappings, response.repositories, scanFolderId)
+    settings.mappings.push(...added)
+    folder.lastScannedAt = new Date().toISOString()
 
-  const scannedAt = new Date().toISOString()
-  await saveSettings({
-    ...latest,
-    mappings: mergeResult.mappings,
-    repositoryScanFolders: latest.repositoryScanFolders.map((folder) =>
-      folder.id === scanFolderId ? { ...folder, lastScannedAt: scannedAt } : folder,
-    ),
-  })
-
-  return {
-    ok: true,
-    conflicts: mergeResult.conflicts,
-    skipped: response.skipped,
-    importedCount: mergeResult.importedCount,
-  }
-}
-
-export const replaceMappingWithDiscovered = async (conflict: RepositoryScanConflict): Promise<void> => {
-  const current = await getSettings()
-  const replacement: RepositoryMapping = {
-    id: conflict.existing.id,
-    provider: conflict.discovered.provider,
-    owner: conflict.discovered.owner,
-    repo: conflict.discovered.repo,
-    repoPath: conflict.discovered.repoPath,
-    source: 'scan',
-    scanFolderId: conflict.scanFolderId,
-  }
-
-  await saveSettings({
-    ...current,
-    mappings: current.mappings.map((mapping) => (mapping.id === conflict.existing.id ? replacement : mapping)),
+    return { ok: true, conflicts, skipped: response.skipped, importedCount: added.length }
   })
 }
 
-export const deleteRepositoryScanFolder = async (scanFolderId: string): Promise<void> => {
-  const current = await getSettings()
-  await saveSettings({
-    ...current,
-    repositoryScanFolders: current.repositoryScanFolders.filter((folder) => folder.id !== scanFolderId),
-    mappings: current.mappings.map((mapping) =>
-      mapping.source === 'scan' && mapping.scanFolderId === scanFolderId
-        ? { ...mapping, source: 'manual' as const, scanFolderId: undefined }
-        : mapping,
-    ),
-  })
-}
+/** Resolves a conflict in favor of the discovered path. */
+export const replaceMappingWithDiscovered = (conflict: RepositoryScanConflict): Promise<void> =>
+  updateSettings((settings) => {
+    const mapping = settings.mappings.find(({ id }) => id === conflict.existing.id)
+    if (!mapping) return
 
-export const deleteScanFolderMappings = async (scanFolderId: string): Promise<void> => {
-  const current = await getSettings()
-  await saveSettings({
-    ...current,
-    mappings: current.mappings.filter(
-      (mapping) => !(mapping.source === 'scan' && mapping.scanFolderId === scanFolderId),
-    ),
+    mapping.repoPath = conflict.discovered.repoPath
+    mapping.source = 'scan'
+    mapping.scanFolderId = conflict.scanFolderId
   })
-}
+
+/** Deletes the folder but keeps its mappings as manual ones. */
+export const deleteRepositoryScanFolder = (scanFolderId: string): Promise<void> =>
+  updateSettings((settings) => {
+    settings.repositoryScanFolders = settings.repositoryScanFolders.filter(({ id }) => id !== scanFolderId)
+
+    for (const mapping of settings.mappings) {
+      if (mapping.scanFolderId !== scanFolderId) continue
+
+      mapping.source = 'manual'
+      mapping.scanFolderId = undefined
+    }
+  })
+
+export const deleteScanFolderMappings = (scanFolderId: string): Promise<void> =>
+  updateSettings((settings) => {
+    settings.mappings = settings.mappings.filter(
+      (mapping) => mapping.source !== 'scan' || mapping.scanFolderId !== scanFolderId,
+    )
+  })

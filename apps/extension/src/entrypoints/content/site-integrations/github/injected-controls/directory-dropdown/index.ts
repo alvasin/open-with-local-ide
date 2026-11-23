@@ -1,175 +1,131 @@
 import triangleDownIcon from '@iconify-icons/octicon/triangle-down-16'
-import { buildIcon, iconToHTML } from 'iconify-icon'
-import { createIdeIcon } from '../ide-icon'
-import { getIdeLabel } from '@/features/open-in-ide'
-import { getSettings } from '@/settings/settings.storage'
+import { createElement, onAsyncClick } from '../dom'
+import { createIcon, createIdeIcon, readSelectedIdeLabel } from '../ide'
 
 const OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE = 'data-open-with-local-ide-directory-dropdown'
 const OPEN_DIRECTORY_BUTTON_CLASS = 'prc-Button-ButtonBase-9n-Xk open-with-local-ide-directory-button'
+
+// Removes the document-level "close on outside click" listener of a dropdown.
 const dropdownCleanups = new WeakMap<HTMLElement, () => void>()
 
 type DirectoryDropdownActions = {
-  openDirectory: (button: HTMLButtonElement) => Promise<void>
-  openRepository: (button: HTMLButtonElement) => Promise<void>
+  openDirectory: () => Promise<void>
+  openRepository: () => Promise<void>
 }
 
 const findDirectoryActionsContainer = (): HTMLElement | null => {
-  const headings = document.querySelectorAll<HTMLHeadingElement>('h2[data-testid="screen-reader-heading"]')
+  const headings = document.querySelectorAll('h2[data-testid="screen-reader-heading"]')
 
   for (const heading of headings) {
-    if (heading.textContent?.trim() !== 'Directory actions') continue
-
-    return heading.closest<HTMLElement>('div.d-flex')
+    if (heading.textContent?.trim() === 'Directory actions') {
+      return heading.closest<HTMLElement>('div.d-flex')
+    }
   }
 
   return null
 }
 
-const findDirectoryTextInputBlock = (container: HTMLElement): Element | null =>
-  Array.from(container.children).find((child) => child.querySelector('[data-component="TextInput"]')) ?? null
+const findDirectoryTextInputBlock = (container: HTMLElement): Element | undefined =>
+  Array.from(container.children).find((child) => child.querySelector('[data-component="TextInput"]'))
 
-const findExistingDirectoryDropdown = (container: HTMLElement): HTMLElement | null =>
-  container.querySelector<HTMLElement>(`[${OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE}]`)
-
-const readSelectedIdeLabel = async (): Promise<string> => {
-  const settings = await getSettings()
-  return getIdeLabel(settings.ide.selectedIde)
-}
-
-const createTriangleDownIcon = (): SVGSVGElement => {
-  const icon = buildIcon(triangleDownIcon, {
-    height: 16,
-    width: 16,
-  })
-  const template = document.createElement('template')
-
-  template.innerHTML = iconToHTML(icon.body, {
-    ...icon.attributes,
-    'aria-hidden': 'true',
-    class: 'octicon octicon-triangle-down',
-    focusable: 'false',
-  })
-
-  return template.content.firstElementChild as SVGSVGElement
-}
-
-const createMenuItem = (
-  label: string,
-  action: (button: HTMLButtonElement) => Promise<void>,
-  closeMenu: () => void,
-): HTMLButtonElement => {
-  const button = Object.assign(document.createElement('button'), {
-    className: 'open-with-local-ide-directory-menu-item',
-    textContent: label,
-    type: 'button',
-  })
-
-  button.addEventListener('click', async () => {
-    if (button.disabled) return
-
-    button.disabled = true
-
-    try {
-      await action(button)
-      closeMenu()
-    } finally {
-      button.disabled = false
-    }
-  })
-
-  return button
-}
+const findExistingDirectoryDropdown = (container: HTMLElement) =>
+  container.querySelector(`[${OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE}]`)
 
 const createDirectoryDropdown = async ({
   openDirectory,
   openRepository,
 }: DirectoryDropdownActions): Promise<HTMLElement> => {
-  const selectedIdeLabel = await readSelectedIdeLabel()
-  const buttonLabel = `Open folder in ${selectedIdeLabel}`
+  const label = `Open folder in ${await readSelectedIdeLabel()}`
   const abortController = new AbortController()
-  const wrapper = Object.assign(document.createElement('div'), {
-    className: 'open-with-local-ide-directory-dropdown',
-  })
-  const button = Object.assign(document.createElement('button'), {
-    className: OPEN_DIRECTORY_BUTTON_CLASS,
-    tabIndex: 0,
-    type: 'button',
-  })
-  const buttonVisual = Object.assign(document.createElement('span'), {
-    className: 'open-with-local-ide-directory-button-visual',
-  })
-  const menu = Object.assign(document.createElement('div'), {
-    className: 'open-with-local-ide-directory-menu',
-    hidden: true,
-  })
 
-  const closeMenu = () => {
-    menu.hidden = true
-    button.setAttribute('aria-expanded', 'false')
+  const button = createElement(
+    'button',
+    {
+      class: OPEN_DIRECTORY_BUTTON_CLASS,
+      type: 'button',
+      tabindex: '0',
+      title: label,
+      'aria-label': label,
+      'aria-haspopup': 'true',
+      'aria-expanded': 'false',
+      // Primer button attributes, so the button looks like GitHub's own buttons.
+      'data-component': 'Button',
+      'data-loading': 'false',
+      'data-no-visuals': 'true',
+      'data-size': 'medium',
+      'data-variant': 'default',
+    },
+    createElement(
+      'span',
+      { class: 'open-with-local-ide-directory-button-visual' },
+      createIdeIcon(),
+      createIcon(triangleDownIcon, 'octicon octicon-triangle-down'),
+    ),
+  )
+  const menu = createElement('div', { class: 'open-with-local-ide-directory-menu', role: 'menu' })
+  menu.hidden = true
+
+  const setMenuOpen = (isOpen: boolean) => {
+    menu.hidden = !isOpen
+    button.setAttribute('aria-expanded', String(isOpen))
   }
 
-  const toggleMenu = () => {
-    menu.hidden = !menu.hidden
-    button.setAttribute('aria-expanded', String(!menu.hidden))
+  const createMenuItem = (text: string, action: () => Promise<void>) => {
+    const item = createElement('button', { class: 'open-with-local-ide-directory-menu-item', type: 'button' }, text)
+    onAsyncClick(item, async () => {
+      await action()
+      setMenuOpen(false)
+    })
+    return item
   }
 
-  wrapper.setAttribute(OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE, 'true')
-
-  button.setAttribute('aria-label', buttonLabel)
-  button.setAttribute('aria-haspopup', 'true')
-  button.setAttribute('aria-expanded', 'false')
-  button.setAttribute('title', buttonLabel)
-  button.setAttribute('data-component', 'Button')
-  button.setAttribute('data-loading', 'false')
-  button.setAttribute('data-no-visuals', 'true')
-  button.setAttribute('data-size', 'medium')
-  button.setAttribute('data-variant', 'default')
-
-  menu.setAttribute('role', 'menu')
   menu.append(
-    createMenuItem('Open this folder as workspace', openDirectory, closeMenu),
-    createMenuItem('Open repository root', openRepository, closeMenu),
+    createMenuItem('Open this folder as workspace', openDirectory),
+    createMenuItem('Open repository root', openRepository),
   )
 
   button.addEventListener('click', (event) => {
     event.stopPropagation()
-    toggleMenu()
+    setMenuOpen(menu.hidden)
   })
-  menu.addEventListener('click', (event) => {
-    event.stopPropagation()
-  })
-  document.addEventListener('click', closeMenu, { signal: abortController.signal })
+  menu.addEventListener('click', (event) => event.stopPropagation())
+  document.addEventListener('click', () => setMenuOpen(false), { signal: abortController.signal })
 
-  buttonVisual.append(createIdeIcon(), createTriangleDownIcon())
-  button.append(buttonVisual)
-  wrapper.append(button, menu)
+  const wrapper = createElement(
+    'div',
+    {
+      class: 'open-with-local-ide-directory-dropdown',
+      [OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE]: 'true',
+    },
+    button,
+    menu,
+  )
   dropdownCleanups.set(wrapper, () => abortController.abort())
 
   return wrapper
 }
 
 export const removeInjectedGitHubDirectoryDropdowns = () => {
-  const injectedDropdowns = document.querySelectorAll<HTMLElement>(`[${OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE}]`)
-
-  for (const injectedDropdown of injectedDropdowns) {
-    dropdownCleanups.get(injectedDropdown)?.()
-    dropdownCleanups.delete(injectedDropdown)
-    injectedDropdown.remove()
+  for (const dropdown of document.querySelectorAll<HTMLElement>(`[${OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE}]`)) {
+    dropdownCleanups.get(dropdown)?.()
+    dropdownCleanups.delete(dropdown)
+    dropdown.remove()
   }
 }
 
+/** Adds the "open folder" dropdown after the file search input of a directory page. */
 export const syncInjectedGitHubDirectoryDropdown = async (actions: DirectoryDropdownActions) => {
-  const targetContainer = findDirectoryActionsContainer()
-  if (!targetContainer) return
-
-  const textInputBlock = findDirectoryTextInputBlock(targetContainer)
-  if (!textInputBlock) return
-
-  const existingDropdown = findExistingDirectoryDropdown(targetContainer)
-  if (existingDropdown) return
-
-  removeInjectedGitHubDirectoryDropdowns()
+  const container = findDirectoryActionsContainer()
+  const textInputBlock = container && findDirectoryTextInputBlock(container)
+  if (!container || !textInputBlock || findExistingDirectoryDropdown(container)) return
 
   const dropdown = await createDirectoryDropdown(actions)
+  // Another sync may have added the dropdown while the settings were loading.
+  if (findExistingDirectoryDropdown(container)) {
+    dropdownCleanups.get(dropdown)?.()
+    return
+  }
+
+  removeInjectedGitHubDirectoryDropdowns()
   textInputBlock.after(dropdown)
 }
