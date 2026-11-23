@@ -48,7 +48,8 @@ const readBytes = async (byteLength: number): Promise<Buffer> =>
     onReadable()
   })
 
-export const readInput = async (): Promise<Buffer> => {
+/** Reads one length-prefixed JSON message from stdin. */
+export const readNativeMessage = async (): Promise<unknown> => {
   const header = await readBytes(4)
   const messageLength = header.readUInt32LE(0)
   if (messageLength > MAX_MESSAGE_BYTES) {
@@ -57,35 +58,7 @@ export const readInput = async (): Promise<Buffer> => {
 
   const payload = await readBytes(messageLength)
 
-  return Buffer.concat([header, payload])
-}
-
-export const readAllInput = async (): Promise<Buffer> => {
-  const chunks: Buffer[] = []
-
-  for await (const chunk of process.stdin) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
-  }
-
-  return Buffer.concat(chunks)
-}
-
-export const readNativeMessage = (input: Buffer): unknown => {
-  if (input.length < 4) throw new Error('Native message header is missing')
-
-  const messageLength = input.readUInt32LE(0)
-  if (messageLength > MAX_MESSAGE_BYTES) {
-    throw new NativeHostError({ code: NativeHostErrorCode.MessageTooLarge })
-  }
-
-  const payloadStart = 4
-  const payloadEnd = payloadStart + messageLength
-
-  if (input.length < payloadEnd) throw new Error('Native message payload is incomplete')
-
-  const payload = input.subarray(payloadStart, payloadEnd).toString('utf8')
-
-  return JSON.parse(payload) as unknown
+  return JSON.parse(payload.toString('utf8')) as unknown
 }
 
 export const writeNativeMessage = async (message: NativeHostResponse): Promise<void> => {

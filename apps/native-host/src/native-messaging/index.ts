@@ -1,18 +1,13 @@
 import { NativeHostErrorCode } from '@open-with-local-ide/protocol'
 import { log, logError } from '../infrastructure/logging/logger.js'
 import { NativeHostError } from '../shared/errors/native-host.error.js'
-import { readInput, readNativeMessage, writeNativeMessage } from './native-message.protocol.js'
+import { readNativeMessage, writeNativeMessage } from './native-message.protocol.js'
 import { createNativeHostErrorResponse, type NativeHostResponse } from './native-message.response.js'
 import { handleNativeMessage } from './native-message.router.js'
 
 const createErrorResponse = (error: unknown): NativeHostResponse => {
   if (error instanceof NativeHostError) {
-    return {
-      ok: false,
-      errorCode: error.code,
-      error: error.safeMessage,
-      ...(error.details ? { details: error.details } : {}),
-    }
+    return createNativeHostErrorResponse({ code: error.code, details: error.details })
   }
 
   if (error instanceof SyntaxError) {
@@ -39,8 +34,7 @@ export const runNativeMessagingServer = async (): Promise<void> => {
   try {
     log({ event: 'host.started' })
 
-    const input = await readInput()
-    const message = readNativeMessage(input)
+    const message = await readNativeMessage()
 
     log({ event: 'host.message.received', ...getMessageLogContext(message) })
 

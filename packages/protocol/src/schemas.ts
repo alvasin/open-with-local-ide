@@ -28,7 +28,6 @@ export const nativeHostErrorDetailsSchema = z.object({
 export const nativeHostErrorResponseSchema = z.object({
   ok: z.literal(false),
   errorCode: z.enum(NativeHostErrorCode),
-  error: z.string(),
   details: nativeHostErrorDetailsSchema.optional(),
 })
 
