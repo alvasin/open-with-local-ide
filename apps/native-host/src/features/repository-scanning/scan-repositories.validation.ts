@@ -9,7 +9,7 @@ import { NativeHostError } from '../../shared/errors/native-host.error.js'
 
 const DEFAULT_MAX_DEPTH = 12
 
-export type ValidScanRepositoriesRequest = ScanRepositoriesRequest & {
+type ValidScanRepositoriesRequest = ScanRepositoriesRequest & {
   rootPath: string
   maxDepth: number
 }

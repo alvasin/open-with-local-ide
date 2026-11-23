@@ -1,6 +1,5 @@
-import { createIdeIcon } from '../ide-icon'
-import { getIdeLabel } from '@/features/open-in-ide'
-import { getSettings } from '@/settings/settings.storage'
+import { createElement, onAsyncClick } from '../dom'
+import { createIdeIcon, readSelectedIdeLabel } from '../ide'
 
 const OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE = 'data-open-with-local-ide-code-dropdown-item'
 
@@ -13,9 +12,7 @@ const isCodeDropdownActionList = (actionList: HTMLUListElement): boolean => {
   const actionListText = actionList.textContent ?? ''
   const hasExpectedActions =
     actionListText.includes('Open with GitHub Desktop') && actionListText.includes('Download ZIP')
-  const hasCloneInput = Boolean(
-    dropdown?.querySelector('input[readonly][value*="github.com"][value$=".git"]'),
-  )
+  const hasCloneInput = Boolean(dropdown?.querySelector('input[readonly][value*="github.com"][value$=".git"]'))
 
   return hasExpectedActions || hasCloneInput
 }
@@ -33,84 +30,56 @@ const findCodeDropdownActionList = (): HTMLUListElement | null => {
 const findExistingCodeDropdownItem = (actionList: HTMLUListElement): HTMLLIElement | null =>
   actionList.querySelector<HTMLLIElement>(`[${OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE}]`)
 
-const readSelectedIdeLabel = async (): Promise<string> => {
-  const settings = await getSettings()
-  return getIdeLabel(settings.ide.selectedIde)
-}
+const createCodeDropdownItem = async (openRepository: () => Promise<void>): Promise<HTMLLIElement> => {
+  const label = `Open with ${await readSelectedIdeLabel()}`
+  const button = createElement(
+    'button',
+    {
+      class: 'open-with-local-ide-action-button',
+      type: 'button',
+      tabindex: '0',
+      'aria-label': label,
+      'data-size': 'medium',
+    },
+    createElement(
+      'span',
+      { class: 'open-with-local-ide-action-icon', 'data-component': 'ActionList.LeadingVisual' },
+      createIdeIcon(),
+    ),
+    createElement(
+      'span',
+      { class: 'open-with-local-ide-action-label', 'data-component': 'ActionList.Item.Label' },
+      label,
+    ),
+  )
 
-const createCodeDropdownItem = async (
-  openGitHubRepository: (button: HTMLButtonElement) => Promise<void>,
-): Promise<HTMLLIElement> => {
-  const selectedIdeLabel = await readSelectedIdeLabel()
-  const buttonLabel = `Open with ${selectedIdeLabel}`
+  onAsyncClick(button, openRepository)
 
-  const item = Object.assign(document.createElement('li'), {
-    className: 'open-with-local-ide-action-item',
-  })
-  const button = Object.assign(document.createElement('button'), {
-    className: 'open-with-local-ide-action-button',
-    tabIndex: 0,
-    type: 'button',
-  })
-  const leadingVisual = Object.assign(document.createElement('span'), {
-    className: 'open-with-local-ide-action-icon',
-  })
-  const label = Object.assign(document.createElement('span'), {
-    className: 'open-with-local-ide-action-label',
-    textContent: buttonLabel,
-  })
-
-  item.setAttribute('data-component', 'ActionList.Item')
-  item.setAttribute('data-has-description', 'false')
-  item.setAttribute(OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE, 'true')
-
-  button.dataset.size = 'medium'
-  button.setAttribute('aria-label', buttonLabel)
-
-  leadingVisual.setAttribute('data-component', 'ActionList.LeadingVisual')
-  leadingVisual.append(createIdeIcon())
-
-  label.setAttribute('data-component', 'ActionList.Item.Label')
-
-  button.addEventListener('click', async () => {
-    if (button.disabled) return
-
-    button.disabled = true
-
-    try {
-      await openGitHubRepository(button)
-    } finally {
-      button.disabled = false
-    }
-  })
-
-  button.append(leadingVisual, label)
-  item.append(button)
-
-  return item
+  return createElement(
+    'li',
+    {
+      class: 'open-with-local-ide-action-item',
+      'data-component': 'ActionList.Item',
+      'data-has-description': 'false',
+      [OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE]: 'true',
+    },
+    button,
+  )
 }
 
 export const removeInjectedGitHubCodeDropdownItems = () => {
-  const injectedItems = document.querySelectorAll<HTMLElement>(
-    `[${OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE}]`,
-  )
-
-  for (const injectedItem of injectedItems) {
-    injectedItem.remove()
-  }
+  for (const item of document.querySelectorAll(`[${OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE}]`)) item.remove()
 }
 
-export const syncInjectedGitHubCodeDropdownItem = async (
-  openGitHubRepository: (button: HTMLButtonElement) => Promise<void>,
-) => {
+/** Adds the "open repository" item to the top of GitHub's Code dropdown. */
+export const syncInjectedGitHubCodeDropdownItem = async (openRepository: () => Promise<void>) => {
   const actionList = findCodeDropdownActionList()
-  if (!actionList) return
+  if (!actionList || findExistingCodeDropdownItem(actionList)) return
 
-  const existingItem = findExistingCodeDropdownItem(actionList)
-  if (existingItem) return
+  const item = await createCodeDropdownItem(openRepository)
+  // Another sync may have added the item while the settings were loading.
+  if (findExistingCodeDropdownItem(actionList)) return
 
   removeInjectedGitHubCodeDropdownItems()
-
-  const item = await createCodeDropdownItem(openGitHubRepository)
   actionList.prepend(item)
 }

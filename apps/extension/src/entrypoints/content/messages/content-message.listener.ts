@@ -1,10 +1,9 @@
 import { parseCurrentGitHubLocation } from '../site-integrations/github'
-import { ExtensionMessageType } from '@/shared/extension/extension.enum'
-import { isRecord } from '@/shared/record/record.guard'
+import { readExtensionMessage } from '@/shared/extension/extension-messages'
 
 export const listenCurrentLocationMessages = () => {
   browser.runtime.onMessage.addListener((message) => {
-    if (!isRecord(message) || message.type !== ExtensionMessageType.GetCurrentLocation) return
+    if (readExtensionMessage(message)?.type !== 'getCurrentLocation') return
 
     return Promise.resolve({ location: parseCurrentGitHubLocation() })
   })

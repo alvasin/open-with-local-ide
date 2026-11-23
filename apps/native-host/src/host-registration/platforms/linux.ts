@@ -18,7 +18,5 @@ export const createLinuxHostRegistration = (): PlatformHostRegistration => ({
 
   unregisterHost: () => undefined,
 
-  getManualUninstallInstructions: (manifestPath: string) => [
-    `Remove manifest file: ${manifestPath}`,
-  ],
+  getManualUninstallInstructions: (manifestPath: string) => [`Remove manifest file: ${manifestPath}`],
 })

@@ -20,7 +20,5 @@ export const createMacosHostRegistration = (): PlatformHostRegistration => ({
   registerHost: () => undefined,
   unregisterHost: () => undefined,
   getManualInstallInstructions: (manifestPath: string) => [`Manifest path: ${manifestPath}`],
-  getManualUninstallInstructions: (manifestPath: string) => [
-    `Remove manifest file: ${manifestPath}`,
-  ],
+  getManualUninstallInstructions: (manifestPath: string) => [`Remove manifest file: ${manifestPath}`],
 })

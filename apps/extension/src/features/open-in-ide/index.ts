@@ -1,127 +1,66 @@
-import { NativeHostErrorCode, type OpenInIdeRequest } from '@open-with-local-ide/protocol'
-import type { CreateOpenInIdeRequestResult, OpenInIdeResponse } from './open-in-ide.types'
-import { ExtensionNativeErrorCode, PROTOCOL_VERSION_MISMATCH_MESSAGE } from '@/native-messaging'
+import type { OpenInIdeRequest } from '@open-with-local-ide/protocol'
+import type { OpenInIdeResponse } from './open-in-ide.native'
+import { ExtensionNativeErrorCode } from '@/native-messaging'
+import { isSameRepository } from '@/providers/repository'
 import type { ParsedRemoteLocation } from '@/providers/types'
-import { isSameRepository } from '@/settings/mappings/mappings'
-import type { ExtensionSettings } from '@/settings/settings.types'
-import type { IdeId } from '@/shared/ide/ide.types'
-export { openInIde } from './open-in-ide.native'
+import type { RepositoryMapping } from '@/settings/settings.schema'
+import type { ExtensionSettings } from '@/settings/settings.schema'
+import { getSettings } from '@/settings/settings.storage'
+import type { ExtensionMessage } from '@/shared/extension/extension-messages'
+import { isRecord } from '@/shared/record/record.guard'
+import { getMissingRepoMappingError, getUiError, type UiError } from '@/shared/ui-errors/ui-errors'
 
-const IDE_LABELS: Record<IdeId, string> = {
-  vscode: 'VS Code',
-}
+export { openInIde, type OpenInIdeResponse } from './open-in-ide.native'
 
-export const getIdeLabel = (ide: IdeId): string => IDE_LABELS[ide] ?? ide
-
-export const getMissingRepoMappingMessage = (repoKey: string): string =>
-  `Local path for ${repoKey} is not configured. Open Options.`
-
-export const getNativeHostUiMessage = (response: OpenInIdeResponse): string => {
-  if (response.ok) return ''
-
-  switch (response.errorCode) {
-    case NativeHostErrorCode.RepoPathMustBeAbsolute:
-    case NativeHostErrorCode.RepoPathNotFound:
-    case NativeHostErrorCode.RepoPathNotDirectory:
-      return 'Local repository path is not available. Check Options.'
-    case NativeHostErrorCode.DirectoryPathMustBeRelative:
-      return 'Remote directory path is invalid.'
-    case NativeHostErrorCode.DirectoryNotFound:
-      return 'Directory was not found in the local repository.'
-    case NativeHostErrorCode.DirectoryPathNotDirectory:
-      return 'Remote directory path is not a local directory.'
-    case NativeHostErrorCode.PathTraversalDetected:
-      return 'Remote path is invalid.'
-    case NativeHostErrorCode.FilePathMustBeRelative:
-      return 'Remote file path is invalid.'
-    case NativeHostErrorCode.FileNotFound:
-      return 'File was not found in the local repository.'
-    case NativeHostErrorCode.IdeNotSupported:
-      return 'Selected IDE is not supported.'
-    case NativeHostErrorCode.IdeNotFound:
-      return 'IDE executable was not found.'
-    case NativeHostErrorCode.IdeLaunchFailed:
-      return 'Failed to launch IDE.'
-    case NativeHostErrorCode.ProtocolVersionMismatch:
-      return PROTOCOL_VERSION_MISMATCH_MESSAGE
-    case NativeHostErrorCode.InvalidRootPath:
-    case NativeHostErrorCode.RootPathNotAbsolute:
-    case NativeHostErrorCode.RootPathNotDirectory:
-    case NativeHostErrorCode.RootPathNotAllowed:
-    case NativeHostErrorCode.ScanFailed:
-    case NativeHostErrorCode.InvalidMessage:
-    case NativeHostErrorCode.MessageTooLarge:
-    case NativeHostErrorCode.UnsupportedAction:
-    case NativeHostErrorCode.NativeHostFailed:
-    case ExtensionNativeErrorCode.InvalidNativeHostResponse:
-    case ExtensionNativeErrorCode.NativeHostConnectionFailed:
-      return response.error
-  }
-}
-
-const createRequest = (
-  remoteLocation: ParsedRemoteLocation,
+export const findRepositoryMapping = (
+  location: ParsedRemoteLocation,
   settings: ExtensionSettings,
-  target: OpenInIdeRequest['target'],
-): CreateOpenInIdeRequestResult => {
-  const mapping = settings.mappings.find((candidate) =>
-    isSameRepository(candidate, {
-      provider: remoteLocation.provider,
-      owner: remoteLocation.owner,
-      repo: remoteLocation.repo,
-    }),
-  )
+): RepositoryMapping | undefined => settings.mappings.find((mapping) => isSameRepository(mapping, location))
 
-  if (!mapping) {
-    return {
-      ok: false,
-      reason: 'missingRepoMapping',
-      repoKey: remoteLocation.repoKey,
-    }
+const toTarget = (location: ParsedRemoteLocation): OpenInIdeRequest['target'] => {
+  switch (location.kind) {
+    case 'file':
+      return { kind: 'file', filePath: location.filePath, line: location.line }
+    case 'directory':
+      return { kind: 'directory', directoryPath: location.directoryPath }
+    case 'repository':
+      return { kind: 'repository' }
   }
+}
 
-  return {
-    ok: true,
-    request: {
+// The background already validated the host response with the protocol schemas, so a shape check
+// is enough here and keeps zod out of the content script and popup bundles.
+const sendToBackground = async (request: OpenInIdeRequest): Promise<OpenInIdeResponse> => {
+  const message: ExtensionMessage = { type: 'openInIde', request }
+  const response: unknown = await browser.runtime.sendMessage(message)
+
+  const isValid =
+    isRecord(response) && (response.ok === true || (response.ok === false && typeof response.errorCode === 'string'))
+
+  return isValid
+    ? (response as OpenInIdeResponse)
+    : { ok: false, errorCode: ExtensionNativeErrorCode.InvalidNativeHostResponse }
+}
+
+/** Opens a remote location in the local IDE. Returns `null` on success or an error to show. */
+export const openLocationInIde = async (location: ParsedRemoteLocation): Promise<UiError | null> => {
+  const settings = await getSettings()
+  const mapping = findRepositoryMapping(location, settings)
+  if (!mapping) return getMissingRepoMappingError(location.repoKey)
+
+  try {
+    const response = await sendToBackground({
       action: 'openInIde',
-      provider: remoteLocation.provider,
+      provider: location.provider,
       ide: settings.ide.selectedIde,
-      repoKey: remoteLocation.repoKey,
+      repoKey: location.repoKey,
       repoPath: mapping.repoPath,
-      target,
-    },
+      target: toTarget(location),
+    })
+
+    return response.ok ? null : getUiError(response.errorCode)
+  } catch {
+    // Typically the extension was reloaded and this page still runs the old content script.
+    return { message: 'Extension is not reachable. Reload the page and try again.' }
   }
 }
-
-export const createOpenFileRequest = (
-  remoteFile: ParsedRemoteLocation & { filePath: string },
-  settings: ExtensionSettings,
-): CreateOpenInIdeRequestResult =>
-  createRequest(remoteFile, settings, {
-    kind: 'file',
-    filePath: remoteFile.filePath,
-    line: remoteFile.line,
-  })
-
-export const createOpenRepositoryRequest = (
-  remoteRepository: ParsedRemoteLocation,
-  settings: ExtensionSettings,
-): CreateOpenInIdeRequestResult =>
-  createRequest(remoteRepository, settings, {
-    kind: 'repository',
-  })
-
-export const createOpenDirectoryRequest = (
-  remoteDirectory: ParsedRemoteLocation & { directoryPath: string },
-  settings: ExtensionSettings,
-): CreateOpenInIdeRequestResult =>
-  createRequest(remoteDirectory, settings, {
-    kind: 'directory',
-    directoryPath: remoteDirectory.directoryPath,
-  })
-
-export type {
-  CreateOpenInIdeRequestResult,
-  OpenInIdeErrorCode,
-  OpenInIdeResponse,
-} from './open-in-ide.types'

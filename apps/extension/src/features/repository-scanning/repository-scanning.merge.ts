@@ -1,48 +1,45 @@
 import type { DiscoveredRepository } from '@open-with-local-ide/protocol'
 import { areSamePath } from './path-comparison'
-import type { RepositoryScanConflict } from './repository-scanning.types'
-import { isSameRepository } from '@/settings/mappings/mappings'
-import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
+import { isSameRepository } from '@/providers/repository'
+import type { RepositoryMapping } from '@/settings/settings.schema'
 
-const createScannedMapping = (
-  discovered: DiscoveredRepository,
-  scanFolderId: string,
-): RepositoryMapping => ({
-  id: crypto.randomUUID(),
-  provider: discovered.provider,
-  owner: discovered.owner,
-  repo: discovered.repo,
-  repoPath: discovered.repoPath,
-  source: 'scan',
-  scanFolderId,
-})
+/** A discovered repository that is already mapped to a different local path. */
+export type RepositoryScanConflict = {
+  existing: RepositoryMapping
+  discovered: DiscoveredRepository
+  scanFolderId: string
+}
 
+/**
+ * Splits scan results into new mappings and conflicts. Repositories already mapped to the same
+ * path are skipped; existing mappings are never changed here.
+ */
 export const mergeDiscoveredRepositories = (
   mappings: RepositoryMapping[],
   discoveredRepositories: DiscoveredRepository[],
   scanFolderId: string,
 ) => {
-  const nextMappings = [...mappings]
+  const added: RepositoryMapping[] = []
   const conflicts: RepositoryScanConflict[] = []
-  let importedCount = 0
 
   for (const discovered of discoveredRepositories) {
-    const existing = nextMappings.find((mapping) => isSameRepository(mapping, discovered))
+    const isSame = (mapping: RepositoryMapping) => isSameRepository(mapping, discovered)
+    const existing = mappings.find(isSame) ?? added.find(isSame)
 
     if (!existing) {
-      nextMappings.push(createScannedMapping(discovered, scanFolderId))
-      importedCount += 1
-      continue
-    }
-
-    if (!areSamePath(existing.repoPath, discovered.repoPath)) {
+      added.push({
+        id: crypto.randomUUID(),
+        provider: discovered.provider,
+        owner: discovered.owner,
+        repo: discovered.repo,
+        repoPath: discovered.repoPath,
+        source: 'scan',
+        scanFolderId,
+      })
+    } else if (!areSamePath(existing.repoPath, discovered.repoPath)) {
       conflicts.push({ existing, discovered, scanFolderId })
     }
   }
 
-  return {
-    mappings: nextMappings,
-    conflicts,
-    importedCount,
-  }
+  return { added, conflicts }
 }

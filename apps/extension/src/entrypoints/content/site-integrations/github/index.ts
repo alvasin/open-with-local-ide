@@ -1,4 +1,4 @@
-import { isCurrentGitHubRepositoryRootPage, parseCurrentGitHubLocation } from './current-location'
+import { parseCurrentGitHubLocation } from './current-location'
 import {
   removeInjectedGitHubCodeDropdownItems,
   syncInjectedGitHubCodeDropdownItem,
@@ -7,17 +7,13 @@ import {
   removeInjectedGitHubDirectoryDropdowns,
   syncInjectedGitHubDirectoryDropdown,
 } from './injected-controls/directory-dropdown'
-import {
-  removeInjectedGitHubButtons,
-  syncInjectedGitHubButton,
-} from './injected-controls/file-button'
+import { removeInjectedGitHubButtons, syncInjectedGitHubButton } from './injected-controls/file-button'
 import { listenGitHubPageChanges } from './navigation'
 import './injected-controls/style.css'
 
 type GitHubOpenActions = {
-  openDirectory: (button: HTMLButtonElement) => Promise<void>
-  openFile: (button: HTMLButtonElement) => Promise<void>
-  openRepository: (button: HTMLButtonElement) => Promise<void>
+  openCurrentLocation: () => Promise<void>
+  openCurrentRepository: () => Promise<void>
 }
 
 export { parseCurrentGitHubLocation }
@@ -28,35 +24,29 @@ const removeInjectedGitHubControls = () => {
   removeInjectedGitHubDirectoryDropdowns()
 }
 
-const syncCurrentGitHubPage = async ({
-  openDirectory,
-  openFile,
-  openRepository,
-}: GitHubOpenActions) => {
-  const currentLocation = parseCurrentGitHubLocation()
-
-  if (currentLocation?.filePath) {
-    removeInjectedGitHubCodeDropdownItems()
-    removeInjectedGitHubDirectoryDropdowns()
-    await syncInjectedGitHubButton(openFile)
-    return
+const syncCurrentGitHubPage = async ({ openCurrentLocation, openCurrentRepository }: GitHubOpenActions) => {
+  switch (parseCurrentGitHubLocation()?.kind) {
+    case 'file':
+      removeInjectedGitHubCodeDropdownItems()
+      removeInjectedGitHubDirectoryDropdowns()
+      await syncInjectedGitHubButton(openCurrentLocation)
+      return
+    case 'directory':
+      removeInjectedGitHubButtons()
+      removeInjectedGitHubCodeDropdownItems()
+      await syncInjectedGitHubDirectoryDropdown({
+        openDirectory: openCurrentLocation,
+        openRepository: openCurrentRepository,
+      })
+      return
+    case 'repository':
+      removeInjectedGitHubButtons()
+      removeInjectedGitHubDirectoryDropdowns()
+      await syncInjectedGitHubCodeDropdownItem(openCurrentRepository)
+      return
+    default:
+      removeInjectedGitHubControls()
   }
-
-  if (currentLocation?.directoryPath) {
-    removeInjectedGitHubButtons()
-    removeInjectedGitHubCodeDropdownItems()
-    await syncInjectedGitHubDirectoryDropdown({ openDirectory, openRepository })
-    return
-  }
-
-  if (currentLocation && isCurrentGitHubRepositoryRootPage()) {
-    removeInjectedGitHubButtons()
-    removeInjectedGitHubDirectoryDropdowns()
-    await syncInjectedGitHubCodeDropdownItem(openRepository)
-    return
-  }
-
-  removeInjectedGitHubControls()
 }
 
 export const syncGitHubContent = (handlers: GitHubOpenActions) => {

@@ -1,6 +1,6 @@
 <template>
   <main class="popup">
-    <PopupHeader @open-options="openOptions" />
+    <PopupHeader @open-options="openOptions()" />
 
     <CurrentLocationSection
       :current-location="currentLocation"
@@ -21,27 +21,25 @@
 </template>
 
 <script lang="ts" setup>
-import { NativeHostErrorCode } from '@open-with-local-ide/protocol'
 import { computed, onMounted, ref } from 'vue'
 import CurrentLocationSection from './components/CurrentLocationSection.vue'
 import PopupHeader from './components/PopupHeader.vue'
 import PopupStatusSection from './components/PopupStatusSection.vue'
-import {
-  createOpenDirectoryRequest,
-  createOpenFileRequest,
-  createOpenRepositoryRequest,
-  getIdeLabel,
-  getMissingRepoMappingMessage,
-  getNativeHostUiMessage,
-  type OpenInIdeErrorCode,
-  type OpenInIdeResponse,
-} from '@/features/open-in-ide'
+import { findRepositoryMapping, openLocationInIde } from '@/features/open-in-ide'
 import type { ParsedRemoteLocation } from '@/providers/types'
-import { isSameRepository } from '@/settings/mappings/mappings'
+import type { ExtensionSettings } from '@/settings/settings.schema'
 import { getSettings } from '@/settings/settings.storage'
-import type { ExtensionSettings } from '@/settings/settings.types'
-import { ExtensionMessageType } from '@/shared/extension/extension.enum'
+import type { ExtensionMessage } from '@/shared/extension/extension-messages'
+import { openOptionsPage } from '@/shared/extension/options-page'
+import { getIdeLabel } from '@/shared/ide/ide'
 import { isRecord } from '@/shared/record/record.guard'
+import { getMissingRepoMappingError, type UiError } from '@/shared/ui-errors/ui-errors'
+
+const OPENED_MESSAGES: Record<ParsedRemoteLocation['kind'], string> = {
+  file: 'File opened successfully.',
+  directory: 'Directory opened successfully.',
+  repository: 'Repository opened successfully.',
+}
 
 const currentLocation = ref<ParsedRemoteLocation | null>(null)
 const settings = ref<ExtensionSettings | null>(null)
@@ -52,146 +50,80 @@ const isOpening = ref(false)
 const status = ref('')
 const shouldShowOpenOptions = ref(false)
 
-const selectedIdeLabel = computed(() =>
-  settings.value ? getIdeLabel(settings.value.ide.selectedIde) : 'VS Code',
-)
+const showStatus = (message: string) => {
+  status.value = message
+  shouldShowOpenOptions.value = false
+}
 
-const isCurrentLocationResponse = (
-  value: unknown,
-): value is { location: ParsedRemoteLocation | null } =>
-  isRecord(value) && (value.location === null || isRecord(value.location))
+const showError = (error: UiError) => {
+  status.value = error.message
+  shouldShowOpenOptions.value = error.action === 'openOptions'
+}
 
-const isOpenInIdeResponse = (value: unknown): value is OpenInIdeResponse =>
-  isRecord(value) && typeof value.ok === 'boolean'
+const selectedIdeLabel = computed(() => (settings.value ? getIdeLabel(settings.value.ide.selectedIde) : 'VS Code'))
+
+const isCurrentLocationResponse = (value: unknown): value is { location: ParsedRemoteLocation | null } =>
+  isRecord(value) && (value.location === null || (isRecord(value.location) && typeof value.location.kind === 'string'))
+
+const readCurrentTabLocation = async (): Promise<ParsedRemoteLocation | null> => {
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+  if (typeof tab?.id !== 'number') return null
+
+  const response: unknown = await browser.tabs
+    .sendMessage(tab.id, { type: 'getCurrentLocation' } satisfies ExtensionMessage)
+    .catch(() => null)
+
+  return isCurrentLocationResponse(response) ? response.location : null
+}
 
 const loadPopupState = async () => {
   isLoading.value = true
   currentLocation.value = null
-  status.value = ''
-  shouldShowOpenOptions.value = false
+  showStatus('')
 
   try {
-    const [tab] = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    })
-
-    const [loadedSettings, fileResponse] = await Promise.all([
-      getSettings(),
-      typeof tab?.id === 'number'
-        ? browser.tabs
-            .sendMessage(tab.id, { type: ExtensionMessageType.GetCurrentLocation })
-            .catch(() => null)
-        : null,
-    ])
+    const [loadedSettings, location] = await Promise.all([getSettings(), readCurrentTabLocation()])
 
     settings.value = loadedSettings
+    currentLocation.value = location
 
-    if (!isCurrentLocationResponse(fileResponse) || !fileResponse.location) {
-      status.value = 'Current tab is not a supported GitHub file page.'
+    if (!location) {
+      showStatus('Current tab is not a supported GitHub page.')
       return
     }
 
-    const file = fileResponse.location
-    currentLocation.value = file
-
-    if (
-      !loadedSettings.mappings.some((mapping) =>
-        isSameRepository(mapping, {
-          provider: file.provider,
-          owner: file.owner,
-          repo: file.repo,
-        }),
-      )
-    ) {
-      status.value = getMissingRepoMappingMessage(file.repoKey)
-      shouldShowOpenOptions.value = true
+    if (!findRepositoryMapping(location, loadedSettings)) {
+      showError(getMissingRepoMappingError(location.repoKey))
     }
   } catch (error) {
-    status.value =
-      error instanceof Error ? error.message : 'Current tab is not a supported GitHub file page.'
+    showStatus(error instanceof Error ? error.message : 'Failed to read the current tab.')
   } finally {
     isLoading.value = false
   }
 }
 
-const openOptions = async () => {
+const openOptions = async (repoKey?: string) => {
   try {
-    await browser.runtime.openOptionsPage()
+    await openOptionsPage(repoKey)
   } catch {
-    status.value = 'Options page is not available yet.'
+    showStatus('Options page is not available yet.')
   }
 }
 
-const openOptionsForCurrentRepo = async () => {
-  const repoKey = currentLocation.value?.repoKey
-
-  if (!repoKey) {
-    await openOptions()
-    return
-  }
-
-  try {
-    await browser.tabs.create({
-      url: browser.runtime.getURL(`/options.html?repoKey=${encodeURIComponent(repoKey)}`),
-    })
-  } catch {
-    status.value = 'Options page is not available yet.'
-  }
-}
+const openOptionsForCurrentRepo = () => openOptions(currentLocation.value?.repoKey)
 
 const openCurrentLocation = async () => {
-  const file = currentLocation.value
-  const currentSettings = settings.value
+  const location = currentLocation.value
+  if (!location) return
 
-  if (!file || !currentSettings) return
-
-  const result = file.filePath
-    ? createOpenFileRequest({ ...file, filePath: file.filePath }, currentSettings)
-    : file.directoryPath
-      ? createOpenDirectoryRequest({ ...file, directoryPath: file.directoryPath }, currentSettings)
-      : createOpenRepositoryRequest(file, currentSettings)
-
-  if (!result.ok) {
-    status.value = getMissingRepoMappingMessage(result.repoKey)
-    shouldShowOpenOptions.value = true
-    return
-  }
-
-  status.value = ''
-  shouldShowOpenOptions.value = false
+  showStatus('')
   isOpening.value = true
 
   try {
-    const response = await browser.runtime.sendMessage({
-      type: ExtensionMessageType.OpenInIde,
-      request: result.request,
-    })
+    const error = await openLocationInIde(location)
 
-    if (!isOpenInIdeResponse(response)) {
-      status.value = 'Native host returned an invalid response.'
-      return
-    }
-
-    if (response.ok) {
-      status.value = file.filePath
-        ? 'File opened successfully.'
-        : file.directoryPath
-          ? 'Directory opened successfully.'
-          : 'Repository opened successfully.'
-      return
-    }
-
-    status.value = getNativeHostUiMessage(response)
-    const repoPathErrorCodes: OpenInIdeErrorCode[] = [
-      NativeHostErrorCode.RepoPathMustBeAbsolute,
-      NativeHostErrorCode.RepoPathNotFound,
-      NativeHostErrorCode.RepoPathNotDirectory,
-    ]
-
-    shouldShowOpenOptions.value = repoPathErrorCodes.includes(response.errorCode)
-  } catch (error) {
-    status.value = error instanceof Error ? error.message : 'Failed to open repository.'
+    if (error) showError(error)
+    else showStatus(OPENED_MESSAGES[location.kind])
   } finally {
     isOpening.value = false
   }

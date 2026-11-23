@@ -1,10 +1,6 @@
 import path from 'node:path'
 import js from '@eslint/js'
-import {
-  configureVueProject,
-  defineConfigWithVueTs,
-  vueTsConfigs,
-} from '@vue/eslint-config-typescript'
+import { configureVueProject, defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import { globalIgnores } from 'eslint/config'
 import skipFormatting from 'eslint-config-prettier/flat'
 import importPlugin from 'eslint-plugin-import'

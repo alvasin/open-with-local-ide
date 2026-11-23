@@ -5,8 +5,7 @@ import { HOST_NAME, MANIFEST_FILE_NAME } from '../registration.constants.js'
 import { projectRoot } from '../registration.paths.js'
 import type { PlatformHostRegistration } from '../registration.types.js'
 
-const getRegistryKey = (): string =>
-  `HKCU\\Software\\Google\\Chrome\\NativeMessagingHosts\\${HOST_NAME}`
+const getRegistryKey = (): string => `HKCU\\Software\\Google\\Chrome\\NativeMessagingHosts\\${HOST_NAME}`
 
 const getWindowsHostWrapperPath = (): string => path.resolve(projectRoot, 'host.cmd')
 
@@ -18,14 +17,10 @@ export const createWindowsHostRegistration = (): PlatformHostRegistration => ({
     fs.writeFileSync(getWindowsHostWrapperPath(), '@echo off\r\nnode "%~dp0dist\\host.js"\r\n')
   },
   registerHost: (manifestPath: string) => {
-    const result = spawnSync(
-      'reg.exe',
-      ['add', getRegistryKey(), '/ve', '/t', 'REG_SZ', '/d', manifestPath, '/f'],
-      {
-        shell: false,
-        stdio: 'inherit',
-      },
-    )
+    const result = spawnSync('reg.exe', ['add', getRegistryKey(), '/ve', '/t', 'REG_SZ', '/d', manifestPath, '/f'], {
+      shell: false,
+      stdio: 'inherit',
+    })
 
     return result.status === 0
   },

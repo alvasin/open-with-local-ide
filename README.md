@@ -106,17 +106,9 @@ repositories that have supported GitHub remotes.
 
 The MVP does not include a system folder picker. Enter the absolute folder path manually.
 
-VS Code command defaults to:
-
-```text
-code
-```
-
-If needed, set an absolute command path, for example:
-
-```text
-C:\Users\<user>\AppData\Local\Programs\Microsoft VS Code\bin\code.cmd
-```
+The native host finds VS Code automatically. On Windows it checks the default install folders
+(`%LOCALAPPDATA%\Programs`, `%ProgramFiles%`, `%ProgramFiles(x86)%`) and then `code.cmd` on `PATH`.
+On macOS and Linux it runs `code` from `PATH`.
 
 ## Manual Test
 

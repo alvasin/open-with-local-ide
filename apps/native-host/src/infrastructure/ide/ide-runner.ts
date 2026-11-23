@@ -1,12 +1,23 @@
 import { spawn } from 'node:child_process'
-import { NativeHostErrorCode } from '@open-with-local-ide/protocol'
+import { NativeHostErrorCode, type OpenInIdeTarget, type ParsedOpenInIdeRequest } from '@open-with-local-ide/protocol'
 import { resolveIdeCommand } from './ide-command-resolver.js'
 import { IDE_ADAPTERS } from './ide-adapters.registry.js'
-import type { ValidOpenInIdeRequest } from '../../features/open-in-ide/open-in-ide.types.js'
 import { log, logError } from '../logging/logger.js'
 import { NativeHostError } from '../../shared/errors/native-host.error.js'
 
-export const launchTargetInIde = async (request: ValidOpenInIdeRequest): Promise<void> => {
+/** A validated open request: everything needed to launch the IDE. */
+export type IdeLaunchTarget = {
+  ide: ParsedOpenInIdeRequest['ide']
+  kind: OpenInIdeTarget['kind']
+  /** Absolute repository path. */
+  repoPath: string
+  /** Absolute path to open: the repository itself, a folder, or a file inside it. */
+  targetPath: string
+  /** Line to jump to; files only. */
+  line?: number
+}
+
+export const launchTargetInIde = async (request: IdeLaunchTarget): Promise<void> => {
   const adapter = IDE_ADAPTERS[request.ide]
   if (!adapter) {
     throw new NativeHostError({
@@ -19,16 +30,13 @@ export const launchTargetInIde = async (request: ValidOpenInIdeRequest): Promise
   const command = commandResolution.command
 
   const args =
-    request.target.kind === 'file'
+    request.kind === 'file'
       ? adapter.buildFileInRepositoryArgs({
-          resolvedPath: request.target.resolvedPath,
+          resolvedPath: request.targetPath,
           repoPath: request.repoPath,
-          line: request.target.line,
+          line: request.line,
         })
-      : adapter.buildRepositoryArgs({
-          repoPath:
-            request.target.kind === 'directory' ? request.target.resolvedPath : request.repoPath,
-        })
+      : adapter.buildRepositoryArgs({ repoPath: request.targetPath })
 
   log({
     event: 'ide.spawn',
