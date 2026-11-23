@@ -9,5 +9,4 @@ export type ScanRepositoriesNativeResponse = NativeHostResult<ScanRepositoriesSu
 
 export const scanRepositoriesInHost = async (
   request: ScanRepositoriesRequest,
-): Promise<ScanRepositoriesNativeResponse> =>
-  requestNativeHost(request, scanRepositoriesSuccessResponseSchema)
+): Promise<ScanRepositoriesNativeResponse> => requestNativeHost(request, scanRepositoriesSuccessResponseSchema)

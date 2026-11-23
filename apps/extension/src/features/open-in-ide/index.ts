@@ -120,8 +120,4 @@ export const createOpenDirectoryRequest = (
     directoryPath: remoteDirectory.directoryPath,
   })
 
-export type {
-  CreateOpenInIdeRequestResult,
-  OpenInIdeErrorCode,
-  OpenInIdeResponse,
-} from './open-in-ide.types'
+export type { CreateOpenInIdeRequestResult, OpenInIdeErrorCode, OpenInIdeResponse } from './open-in-ide.types'

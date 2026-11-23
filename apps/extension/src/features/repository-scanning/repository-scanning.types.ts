@@ -1,8 +1,4 @@
-import type {
-  DiscoveredRepository,
-  NativeHostErrorCode,
-  ScanSkippedEntry,
-} from '@open-with-local-ide/protocol'
+import type { DiscoveredRepository, NativeHostErrorCode, ScanSkippedEntry } from '@open-with-local-ide/protocol'
 import type { RepositoryScanningErrorCode } from './repository-scanning.errors'
 import type { ExtensionNativeErrorCode } from '@/native-messaging'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
@@ -27,5 +23,4 @@ export type ScanFolderResult =
     }
 
 export type AddScanFolderResult =
-  | { ok: true; folder: RepositoryScanFolder }
-  | { ok: false; reason: 'required' | 'not_absolute' | 'duplicate' }
+  { ok: true; folder: RepositoryScanFolder } | { ok: false; reason: 'required' | 'not_absolute' | 'duplicate' }

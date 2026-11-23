@@ -1,12 +1,5 @@
-import {
-  NativeHostErrorCode,
-  nativeHostRequestEnvelopeSchema,
-  PROTOCOL_VERSION,
-} from '@open-with-local-ide/protocol'
-import {
-  createNativeHostErrorResponse,
-  type NativeHostResponse,
-} from './native-message.response.js'
+import { NativeHostErrorCode, nativeHostRequestEnvelopeSchema, PROTOCOL_VERSION } from '@open-with-local-ide/protocol'
+import { createNativeHostErrorResponse, type NativeHostResponse } from './native-message.response.js'
 import { handleOpenInIdeMessage } from '../features/open-in-ide/index.js'
 import { scanRepositories } from '../features/repository-scanning/index.js'
 

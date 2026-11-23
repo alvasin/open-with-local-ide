@@ -7,30 +7,15 @@
 
     <label class="repo-mappings__field">
       <span class="repo-mappings__label">Repository</span>
-      <input
-        v-model="repoKey"
-        class="repo-mappings__input"
-        type="text"
-        placeholder="github.com/org/repo"
-      />
+      <input v-model="repoKey" class="repo-mappings__input" type="text" placeholder="github.com/org/repo" />
     </label>
 
     <label class="repo-mappings__field">
       <span class="repo-mappings__label">Local path</span>
-      <input
-        v-model="localPath"
-        class="repo-mappings__input"
-        type="text"
-        placeholder="/absolute/path/to/repo"
-      />
+      <input v-model="localPath" class="repo-mappings__input" type="text" placeholder="/absolute/path/to/repo" />
     </label>
 
-    <button
-      class="repo-mappings__primary-button"
-      type="button"
-      :disabled="isSaving"
-      @click="saveMapping"
-    >
+    <button class="repo-mappings__primary-button" type="button" :disabled="isSaving" @click="saveMapping">
       {{ isSaving ? 'Saving...' : 'Save mapping' }}
     </button>
 
@@ -62,10 +47,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
-import {
-  deleteRepositoryMapping,
-  saveManualMapping,
-} from '@/features/repository-mappings/repository-mappings'
+import { deleteRepositoryMapping, saveManualMapping } from '@/features/repository-mappings/repository-mappings'
 import { getRepositoryKey } from '@/settings/mappings/mappings'
 import { getSettings } from '@/settings/settings.storage'
 import type { ExtensionSettings } from '@/settings/settings.types'

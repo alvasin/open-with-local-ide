@@ -3,8 +3,7 @@ import { getIdeLabel } from '@/features/open-in-ide'
 import { getSettings } from '@/settings/settings.storage'
 
 const OPEN_BUTTON_ATTRIBUTE = 'data-open-with-local-ide-button'
-const OPEN_BUTTON_CLASS =
-  'prc-Button-ButtonBase-9n-Xk prc-Button-IconButton-fyge7 open-with-local-ide-button'
+const OPEN_BUTTON_CLASS = 'prc-Button-ButtonBase-9n-Xk prc-Button-IconButton-fyge7 open-with-local-ide-button'
 
 const GITHUB_BLOB_HEADER_ACTIONS_SELECTOR = 'div[class*="BlobViewHeader-module__Box_3"]'
 
@@ -82,9 +81,7 @@ const mountOpenButton = async (
   targetContainer.append(button)
 }
 
-export const syncInjectedGitHubButton = async (
-  openGitHubFile: (button: HTMLButtonElement) => Promise<void>,
-) => {
+export const syncInjectedGitHubButton = async (openGitHubFile: (button: HTMLButtonElement) => Promise<void>) => {
   const targetContainer = findFileActionsContainer()
   if (!targetContainer) return
 

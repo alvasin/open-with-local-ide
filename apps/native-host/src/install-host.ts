@@ -1,10 +1,6 @@
 #!/usr/bin/env node
 
-import {
-  getManifestInstallPath,
-  getManualInstallInstructions,
-  installNativeHost,
-} from './host-registration/install.js'
+import { getManifestInstallPath, getManualInstallInstructions, installNativeHost } from './host-registration/install.js'
 import { HOST_NAME } from './host-registration/registration.constants.js'
 
 const printUsage = () => {
@@ -35,8 +31,7 @@ const main = () => {
 
     console.log(`Native host manifest generated: ${result.manifestPath}`)
 
-    if (result.windowsRegistryRegistered)
-      console.log(`Windows registry key registered for ${HOST_NAME}`)
+    if (result.windowsRegistryRegistered) console.log(`Windows registry key registered for ${HOST_NAME}`)
 
     for (const warning of result.warnings) {
       console.warn(warning)

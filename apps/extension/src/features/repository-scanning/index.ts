@@ -2,21 +2,13 @@ import { isAbsolutePath, normalizePathForComparison } from './path-comparison'
 import { RepositoryScanningErrorCode } from './repository-scanning.errors'
 import { mergeDiscoveredRepositories } from './repository-scanning.merge'
 import { scanRepositoriesInHost } from './repository-scanning.native'
-import type {
-  AddScanFolderResult,
-  RepositoryScanConflict,
-  ScanFolderResult,
-} from './repository-scanning.types'
+import type { AddScanFolderResult, RepositoryScanConflict, ScanFolderResult } from './repository-scanning.types'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 import type { RepositoryScanFolder } from '@/settings/repository-scanning/repository-scanning.types'
 import { getSettings, saveSettings } from '@/settings/settings.storage'
 
 export { RepositoryScanningErrorCode } from './repository-scanning.errors'
-export type {
-  AddScanFolderResult,
-  RepositoryScanConflict,
-  ScanFolderResult,
-} from './repository-scanning.types'
+export type { AddScanFolderResult, RepositoryScanConflict, ScanFolderResult } from './repository-scanning.types'
 
 export const addRepositoryScanFolder = async (path: string): Promise<AddScanFolderResult> => {
   const folderPath = path.trim()
@@ -25,11 +17,7 @@ export const addRepositoryScanFolder = async (path: string): Promise<AddScanFold
 
   const current = await getSettings()
   const normalizedPath = normalizePathForComparison(folderPath)
-  if (
-    current.repositoryScanFolders.some(
-      (folder) => normalizePathForComparison(folder.path) === normalizedPath,
-    )
-  ) {
+  if (current.repositoryScanFolders.some((folder) => normalizePathForComparison(folder.path) === normalizedPath)) {
     return { ok: false, reason: 'duplicate' }
   }
 
@@ -63,11 +51,7 @@ export const scanRepositoryFolder = async (scanFolderId: string): Promise<ScanFo
     return { ok: false, errorCode: RepositoryScanningErrorCode.ScanFolderNotFound }
   }
 
-  const mergeResult = mergeDiscoveredRepositories(
-    latest.mappings,
-    response.repositories,
-    scanFolderId,
-  )
+  const mergeResult = mergeDiscoveredRepositories(latest.mappings, response.repositories, scanFolderId)
 
   const scannedAt = new Date().toISOString()
   await saveSettings({
@@ -86,9 +70,7 @@ export const scanRepositoryFolder = async (scanFolderId: string): Promise<ScanFo
   }
 }
 
-export const replaceMappingWithDiscovered = async (
-  conflict: RepositoryScanConflict,
-): Promise<void> => {
+export const replaceMappingWithDiscovered = async (conflict: RepositoryScanConflict): Promise<void> => {
   const current = await getSettings()
   const replacement: RepositoryMapping = {
     id: conflict.existing.id,
@@ -102,9 +84,7 @@ export const replaceMappingWithDiscovered = async (
 
   await saveSettings({
     ...current,
-    mappings: current.mappings.map((mapping) =>
-      mapping.id === conflict.existing.id ? replacement : mapping,
-    ),
+    mappings: current.mappings.map((mapping) => (mapping.id === conflict.existing.id ? replacement : mapping)),
   })
 }
 
@@ -112,9 +92,7 @@ export const deleteRepositoryScanFolder = async (scanFolderId: string): Promise<
   const current = await getSettings()
   await saveSettings({
     ...current,
-    repositoryScanFolders: current.repositoryScanFolders.filter(
-      (folder) => folder.id !== scanFolderId,
-    ),
+    repositoryScanFolders: current.repositoryScanFolders.filter((folder) => folder.id !== scanFolderId),
     mappings: current.mappings.map((mapping) =>
       mapping.source === 'scan' && mapping.scanFolderId === scanFolderId
         ? { ...mapping, source: 'manual' as const, scanFolderId: undefined }

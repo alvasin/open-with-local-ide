@@ -13,9 +13,7 @@ const isCodeDropdownActionList = (actionList: HTMLUListElement): boolean => {
   const actionListText = actionList.textContent ?? ''
   const hasExpectedActions =
     actionListText.includes('Open with GitHub Desktop') && actionListText.includes('Download ZIP')
-  const hasCloneInput = Boolean(
-    dropdown?.querySelector('input[readonly][value*="github.com"][value$=".git"]'),
-  )
+  const hasCloneInput = Boolean(dropdown?.querySelector('input[readonly][value*="github.com"][value$=".git"]'))
 
   return hasExpectedActions || hasCloneInput
 }
@@ -91,9 +89,7 @@ const createCodeDropdownItem = async (
 }
 
 export const removeInjectedGitHubCodeDropdownItems = () => {
-  const injectedItems = document.querySelectorAll<HTMLElement>(
-    `[${OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE}]`,
-  )
+  const injectedItems = document.querySelectorAll<HTMLElement>(`[${OPEN_CODE_DROPDOWN_ITEM_ATTRIBUTE}]`)
 
   for (const injectedItem of injectedItems) {
     injectedItem.remove()

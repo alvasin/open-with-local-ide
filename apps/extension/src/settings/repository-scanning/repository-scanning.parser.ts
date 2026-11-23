@@ -6,11 +6,7 @@ const isIsoDate = (value: string): boolean => !Number.isNaN(Date.parse(value))
 
 const parseScanFolder = (value: unknown): RepositoryScanFolder | null => {
   if (!isRecord(value)) return null
-  if (
-    typeof value.id !== 'string' ||
-    typeof value.path !== 'string' ||
-    typeof value.createdAt !== 'string'
-  ) {
+  if (typeof value.id !== 'string' || typeof value.path !== 'string' || typeof value.createdAt !== 'string') {
     return null
   }
 

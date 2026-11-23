@@ -26,8 +26,7 @@ export const launchTargetInIde = async (request: ValidOpenInIdeRequest): Promise
           line: request.target.line,
         })
       : adapter.buildRepositoryArgs({
-          repoPath:
-            request.target.kind === 'directory' ? request.target.resolvedPath : request.repoPath,
+          repoPath: request.target.kind === 'directory' ? request.target.resolvedPath : request.repoPath,
         })
 
   log({

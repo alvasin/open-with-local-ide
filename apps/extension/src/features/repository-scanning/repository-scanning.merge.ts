@@ -4,10 +4,7 @@ import type { RepositoryScanConflict } from './repository-scanning.types'
 import { isSameRepository } from '@/settings/mappings/mappings'
 import type { RepositoryMapping } from '@/settings/mappings/mappings.types'
 
-const createScannedMapping = (
-  discovered: DiscoveredRepository,
-  scanFolderId: string,
-): RepositoryMapping => ({
+const createScannedMapping = (discovered: DiscoveredRepository, scanFolderId: string): RepositoryMapping => ({
   id: crypto.randomUUID(),
   provider: discovered.provider,
   owner: discovered.owner,

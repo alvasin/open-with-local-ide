@@ -7,10 +7,7 @@ import {
   removeInjectedGitHubDirectoryDropdowns,
   syncInjectedGitHubDirectoryDropdown,
 } from './injected-controls/directory-dropdown'
-import {
-  removeInjectedGitHubButtons,
-  syncInjectedGitHubButton,
-} from './injected-controls/file-button'
+import { removeInjectedGitHubButtons, syncInjectedGitHubButton } from './injected-controls/file-button'
 import { listenGitHubPageChanges } from './navigation'
 import './injected-controls/style.css'
 
@@ -28,11 +25,7 @@ const removeInjectedGitHubControls = () => {
   removeInjectedGitHubDirectoryDropdowns()
 }
 
-const syncCurrentGitHubPage = async ({
-  openDirectory,
-  openFile,
-  openRepository,
-}: GitHubOpenActions) => {
+const syncCurrentGitHubPage = async ({ openDirectory, openFile, openRepository }: GitHubOpenActions) => {
   const currentLocation = parseCurrentGitHubLocation()
 
   if (currentLocation?.filePath) {

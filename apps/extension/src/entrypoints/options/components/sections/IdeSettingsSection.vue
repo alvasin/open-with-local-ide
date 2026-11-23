@@ -20,20 +20,13 @@
     <div class="ide-settings__examples">
       <p class="ide-settings__examples-title">Examples</p>
       <code class="ide-settings__example">code</code>
-      <code class="ide-settings__example">
-        /Applications/Visual Studio Code.app/Contents/Resources/app/bin/code
-      </code>
+      <code class="ide-settings__example"> /Applications/Visual Studio Code.app/Contents/Resources/app/bin/code </code>
       <code class="ide-settings__example">
         C:\Users\&lt;user&gt;\AppData\Local\Programs\Microsoft VS Code\bin\code.cmd
       </code>
     </div>
 
-    <button
-      class="ide-settings__primary-button"
-      type="button"
-      :disabled="isSaving"
-      @click="saveIde"
-    >
+    <button class="ide-settings__primary-button" type="button" :disabled="isSaving" @click="saveIde">
       {{ isSaving ? 'Saving...' : 'Save IDE settings' }}
     </button>
 

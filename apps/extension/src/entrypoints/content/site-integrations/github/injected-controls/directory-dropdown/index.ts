@@ -5,8 +5,7 @@ import { getIdeLabel } from '@/features/open-in-ide'
 import { getSettings } from '@/settings/settings.storage'
 
 const OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE = 'data-open-with-local-ide-directory-dropdown'
-const OPEN_DIRECTORY_BUTTON_CLASS =
-  'prc-Button-ButtonBase-9n-Xk open-with-local-ide-directory-button'
+const OPEN_DIRECTORY_BUTTON_CLASS = 'prc-Button-ButtonBase-9n-Xk open-with-local-ide-directory-button'
 const dropdownCleanups = new WeakMap<HTMLElement, () => void>()
 
 type DirectoryDropdownActions = {
@@ -15,9 +14,7 @@ type DirectoryDropdownActions = {
 }
 
 const findDirectoryActionsContainer = (): HTMLElement | null => {
-  const headings = document.querySelectorAll<HTMLHeadingElement>(
-    'h2[data-testid="screen-reader-heading"]',
-  )
+  const headings = document.querySelectorAll<HTMLHeadingElement>('h2[data-testid="screen-reader-heading"]')
 
   for (const heading of headings) {
     if (heading.textContent?.trim() !== 'Directory actions') continue
@@ -29,9 +26,7 @@ const findDirectoryActionsContainer = (): HTMLElement | null => {
 }
 
 const findDirectoryTextInputBlock = (container: HTMLElement): Element | null =>
-  Array.from(container.children).find((child) =>
-    child.querySelector('[data-component="TextInput"]'),
-  ) ?? null
+  Array.from(container.children).find((child) => child.querySelector('[data-component="TextInput"]')) ?? null
 
 const findExistingDirectoryDropdown = (container: HTMLElement): HTMLElement | null =>
   container.querySelector<HTMLElement>(`[${OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE}]`)
@@ -154,9 +149,7 @@ const createDirectoryDropdown = async ({
 }
 
 export const removeInjectedGitHubDirectoryDropdowns = () => {
-  const injectedDropdowns = document.querySelectorAll<HTMLElement>(
-    `[${OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE}]`,
-  )
+  const injectedDropdowns = document.querySelectorAll<HTMLElement>(`[${OPEN_DIRECTORY_DROPDOWN_ATTRIBUTE}]`)
 
   for (const injectedDropdown of injectedDropdowns) {
     dropdownCleanups.get(injectedDropdown)?.()

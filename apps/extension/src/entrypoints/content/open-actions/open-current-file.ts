@@ -20,10 +20,7 @@ export const createOpenCurrentFileAction =
     if (!currentFile?.filePath) return
 
     const settings = await getSettings()
-    const result = createOpenFileRequest(
-      { ...currentFile, filePath: currentFile.filePath },
-      settings,
-    )
+    const result = createOpenFileRequest({ ...currentFile, filePath: currentFile.filePath }, settings)
 
     if (!result.ok) {
       console.warn(logWarnName, getMissingRepoMappingMessage(result.repoKey))

@@ -13,9 +13,7 @@
         placeholder="C:\Users\me\Projects"
         @keyup.enter="addFolder"
       />
-      <button class="scan-folders__primary-button" type="button" @click="addFolder">
-        Add folder
-      </button>
+      <button class="scan-folders__primary-button" type="button" @click="addFolder">Add folder</button>
     </div>
 
     <p v-if="status" class="scan-folders__status">{{ status }}</p>
@@ -42,9 +40,7 @@
           >
             {{ folderState(folder.id).scanning ? 'Scanning...' : 'Scan' }}
           </button>
-          <button class="scan-folders__button" type="button" @click="removeFolder(folder.id)">
-            Delete folder
-          </button>
+          <button class="scan-folders__button" type="button" @click="removeFolder(folder.id)">Delete folder</button>
           <button
             v-if="folderMappings(folder.id).length"
             class="scan-folders__button"
@@ -61,11 +57,7 @@
 
         <div v-if="folderMappings(folder.id).length" class="scan-folders__nested">
           <p class="scan-folders__subtitle">Active mappings</p>
-          <div
-            v-for="mapping in folderMappings(folder.id)"
-            :key="mapping.id"
-            class="scan-folders__mapping"
-          >
+          <div v-for="mapping in folderMappings(folder.id)" :key="mapping.id" class="scan-folders__mapping">
             <strong>✓ {{ getRepositoryKey(mapping) }}</strong>
             <span>{{ mapping.repoPath }}</span>
           </div>
@@ -82,18 +74,10 @@
             <span>Existing: {{ conflict.existing.repoPath }}</span>
             <span>Discovered: {{ conflict.discovered.repoPath }}</span>
             <div class="scan-folders__actions">
-              <button
-                class="scan-folders__button"
-                type="button"
-                @click="keepExisting(folder.id, conflict)"
-              >
+              <button class="scan-folders__button" type="button" @click="keepExisting(folder.id, conflict)">
                 Keep existing
               </button>
-              <button
-                class="scan-folders__button"
-                type="button"
-                @click="replaceMapping(folder.id, conflict)"
-              >
+              <button class="scan-folders__button" type="button" @click="replaceMapping(folder.id, conflict)">
                 Replace
               </button>
             </div>
@@ -101,9 +85,7 @@
         </div>
 
         <div v-if="folderState(folder.id).skipped.length" class="scan-folders__nested">
-          <p class="scan-folders__subtitle">
-            Skipped entries ({{ folderState(folder.id).skipped.length }})
-          </p>
+          <p class="scan-folders__subtitle">Skipped entries ({{ folderState(folder.id).skipped.length }})</p>
           <p
             v-for="entry in folderState(folder.id).skipped.slice(0, 10)"
             :key="`${entry.path}:${entry.reason}`"
@@ -118,11 +100,7 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  NativeHostErrorCode,
-  type ScanSkippedEntry,
-  type ScanSkippedReason,
-} from '@open-with-local-ide/protocol'
+import { NativeHostErrorCode, type ScanSkippedEntry, type ScanSkippedReason } from '@open-with-local-ide/protocol'
 import { computed, onMounted, ref } from 'vue'
 import {
   addRepositoryScanFolder,
@@ -162,8 +140,7 @@ const emptyFolderState = (): FolderUiState => ({
   skipped: [],
 })
 
-const folderState = (folderId: string): FolderUiState =>
-  folderStates.value[folderId] ?? emptyFolderState()
+const folderState = (folderId: string): FolderUiState => folderStates.value[folderId] ?? emptyFolderState()
 
 const updateFolderState = (folderId: string, patch: Partial<FolderUiState>) => {
   folderStates.value = {
@@ -214,9 +191,7 @@ const toggleFolder = (folderId: string) => {
 const isExpanded = (folderId: string): boolean => expandedFolderIds.value.has(folderId)
 
 const folderMappings = (folderId: string): RepositoryMapping[] =>
-  settings.value?.mappings.filter(
-    (mapping) => mapping.source === 'scan' && mapping.scanFolderId === folderId,
-  ) ?? []
+  settings.value?.mappings.filter((mapping) => mapping.source === 'scan' && mapping.scanFolderId === folderId) ?? []
 
 const scanErrorMessage = (errorCode: string): string => {
   switch (errorCode) {

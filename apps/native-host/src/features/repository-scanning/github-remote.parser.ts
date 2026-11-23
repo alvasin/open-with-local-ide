@@ -9,10 +9,7 @@ export type ParsedGitHubRemote = {
 
 export const parseGitHubRemote = (remoteUrl: string): ParsedGitHubRemote | null => {
   const value = remoteUrl.trim()
-  const match =
-    value.match(HTTPS_GITHUB_REMOTE) ??
-    value.match(SCP_GITHUB_REMOTE) ??
-    value.match(SSH_GITHUB_REMOTE)
+  const match = value.match(HTTPS_GITHUB_REMOTE) ?? value.match(SCP_GITHUB_REMOTE) ?? value.match(SSH_GITHUB_REMOTE)
 
   const owner = match?.[1]
   const repo = match?.[2]

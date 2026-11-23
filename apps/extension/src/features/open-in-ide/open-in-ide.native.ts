@@ -1,7 +1,4 @@
-import {
-  openInIdeSuccessResponseSchema,
-  type OpenInIdeRequest,
-} from '@open-with-local-ide/protocol'
+import { openInIdeSuccessResponseSchema, type OpenInIdeRequest } from '@open-with-local-ide/protocol'
 import type { OpenInIdeResponse } from './open-in-ide.types'
 import { requestNativeHost } from '@/native-messaging'
 

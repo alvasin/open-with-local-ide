@@ -1,8 +1,4 @@
-import type {
-  NativeHostErrorCode,
-  NativeHostErrorDetails,
-  OpenInIdeRequest,
-} from '@open-with-local-ide/protocol'
+import type { NativeHostErrorCode, NativeHostErrorDetails, OpenInIdeRequest } from '@open-with-local-ide/protocol'
 import type { ExtensionNativeErrorCode } from '@/native-messaging'
 
 export type OpenInIdeErrorCode = NativeHostErrorCode | ExtensionNativeErrorCode
@@ -17,5 +13,4 @@ export type OpenInIdeResponse =
     }
 
 export type CreateOpenInIdeRequestResult =
-  | { ok: true; request: OpenInIdeRequest }
-  | { ok: false; reason: 'missingRepoMapping'; repoKey: string }
+  { ok: true; request: OpenInIdeRequest } | { ok: false; reason: 'missingRepoMapping'; repoKey: string }

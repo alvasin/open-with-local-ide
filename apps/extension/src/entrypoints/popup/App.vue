@@ -52,13 +52,9 @@ const isOpening = ref(false)
 const status = ref('')
 const shouldShowOpenOptions = ref(false)
 
-const selectedIdeLabel = computed(() =>
-  settings.value ? getIdeLabel(settings.value.ide.selectedIde) : 'VS Code',
-)
+const selectedIdeLabel = computed(() => (settings.value ? getIdeLabel(settings.value.ide.selectedIde) : 'VS Code'))
 
-const isCurrentLocationResponse = (
-  value: unknown,
-): value is { location: ParsedRemoteLocation | null } =>
+const isCurrentLocationResponse = (value: unknown): value is { location: ParsedRemoteLocation | null } =>
   isRecord(value) && (value.location === null || isRecord(value.location))
 
 const isOpenInIdeResponse = (value: unknown): value is OpenInIdeResponse =>
@@ -79,9 +75,7 @@ const loadPopupState = async () => {
     const [loadedSettings, fileResponse] = await Promise.all([
       getSettings(),
       typeof tab?.id === 'number'
-        ? browser.tabs
-            .sendMessage(tab.id, { type: ExtensionMessageType.GetCurrentLocation })
-            .catch(() => null)
+        ? browser.tabs.sendMessage(tab.id, { type: ExtensionMessageType.GetCurrentLocation }).catch(() => null)
         : null,
     ])
 
@@ -108,8 +102,7 @@ const loadPopupState = async () => {
       shouldShowOpenOptions.value = true
     }
   } catch (error) {
-    status.value =
-      error instanceof Error ? error.message : 'Current tab is not a supported GitHub file page.'
+    status.value = error instanceof Error ? error.message : 'Current tab is not a supported GitHub file page.'
   } finally {
     isLoading.value = false
   }

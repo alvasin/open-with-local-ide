@@ -26,8 +26,7 @@ const main = () => {
       console.log(`Native host manifest not found: ${result.manifestPath}`)
     }
 
-    if (result.windowsRegistryUnregistered)
-      console.log(`Windows registry key removed for ${HOST_NAME}`)
+    if (result.windowsRegistryUnregistered) console.log(`Windows registry key removed for ${HOST_NAME}`)
 
     for (const warning of result.warnings) {
       console.warn(warning)

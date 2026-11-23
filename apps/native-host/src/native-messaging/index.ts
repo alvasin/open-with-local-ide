@@ -2,10 +2,7 @@ import { NativeHostErrorCode } from '@open-with-local-ide/protocol'
 import { log, logError } from '../infrastructure/logging/logger.js'
 import { NativeHostError } from '../shared/errors/native-host.error.js'
 import { readInput, readNativeMessage, writeNativeMessage } from './native-message.protocol.js'
-import {
-  createNativeHostErrorResponse,
-  type NativeHostResponse,
-} from './native-message.response.js'
+import { createNativeHostErrorResponse, type NativeHostResponse } from './native-message.response.js'
 import { handleNativeMessage } from './native-message.router.js'
 
 const createErrorResponse = (error: unknown): NativeHostResponse => {

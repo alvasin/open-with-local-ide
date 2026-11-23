@@ -24,8 +24,7 @@ const buildHostIfNeeded = (): string[] => {
   return []
 }
 
-export const getManifestInstallPath = (): string =>
-  createPlatformHostRegistration().getManifestInstallPath()
+export const getManifestInstallPath = (): string => createPlatformHostRegistration().getManifestInstallPath()
 
 export const getManualInstallInstructions = (manifestPath: string): string[] =>
   createPlatformHostRegistration().getManualInstallInstructions(manifestPath)

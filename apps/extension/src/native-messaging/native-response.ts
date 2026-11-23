@@ -1,12 +1,8 @@
-import {
-  nativeHostErrorResponseSchema,
-  type NativeHostErrorResponse,
-} from '@open-with-local-ide/protocol'
+import { nativeHostErrorResponseSchema, type NativeHostErrorResponse } from '@open-with-local-ide/protocol'
 import type { ZodType } from 'zod'
 import { ExtensionNativeErrorCode, type ExtensionNativeErrorResponse } from './native-error.types'
 
-export type NativeHostResult<TSuccess> =
-  TSuccess | NativeHostErrorResponse | ExtensionNativeErrorResponse
+export type NativeHostResult<TSuccess> = TSuccess | NativeHostErrorResponse | ExtensionNativeErrorResponse
 
 export const parseNativeHostResponse = <TSuccess>(
   response: unknown,

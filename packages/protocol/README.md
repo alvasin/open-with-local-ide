@@ -15,11 +15,7 @@ src/
 ```
 
 ```ts
-import {
-  NativeHostErrorCode,
-  openInIdeRequestSchema,
-  type OpenInIdeRequest,
-} from '@open-with-local-ide/protocol'
+import { NativeHostErrorCode, openInIdeRequestSchema, type OpenInIdeRequest } from '@open-with-local-ide/protocol'
 ```
 
 ## Rules

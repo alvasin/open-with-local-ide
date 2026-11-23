@@ -1,8 +1,4 @@
-import {
-  NativeHostErrorCode,
-  openInIdeRequestSchema,
-  type ParsedOpenInIdeRequest,
-} from '@open-with-local-ide/protocol'
+import { NativeHostErrorCode, openInIdeRequestSchema, type ParsedOpenInIdeRequest } from '@open-with-local-ide/protocol'
 import { NativeHostError } from '../../shared/errors/native-host.error.js'
 import { validateDirectoryTarget } from './targets/directory-target.validation.js'
 import { validateFileTarget } from './targets/file-target.validation.js'

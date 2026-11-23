@@ -9,28 +9,15 @@ import { NativeHostErrorCode } from '@open-with-local-ide/protocol'
 import { NativeHostError } from '../../shared/errors/native-host.error.js'
 import { parseGitRemotes } from './git-config.parser.js'
 import { parseGitHubRemote } from './github-remote.parser.js'
-import {
-  validateScanRepositoriesRequest,
-  type ValidScanRepositoriesRequest,
-} from './scan-repositories.validation.js'
+import { validateScanRepositoriesRequest, type ValidScanRepositoriesRequest } from './scan-repositories.validation.js'
 
 const SKIPPED_DIR_NAMES = new Set(
-  [
-    'node_modules',
-    '.cache',
-    '.pnpm-store',
-    '.yarn',
-    'dist',
-    'build',
-    'coverage',
-    '.next',
-    '.nuxt',
-    'appdata',
-  ].map((name) => name.toLowerCase()),
+  ['node_modules', '.cache', '.pnpm-store', '.yarn', 'dist', 'build', 'coverage', '.next', '.nuxt', 'appdata'].map(
+    (name) => name.toLowerCase(),
+  ),
 )
 
-type GitDirectoryResult =
-  { status: 'missing' } | { status: 'invalid' } | { status: 'found'; gitDirectory: string }
+type GitDirectoryResult = { status: 'missing' } | { status: 'invalid' } | { status: 'found'; gitDirectory: string }
 
 const readGitDirectory = (repoPath: string): GitDirectoryResult => {
   const dotGitPath = path.join(repoPath, '.git')
@@ -64,10 +51,7 @@ const findGitConfig = (gitDirectory: string): string | null => {
   return fs.existsSync(commonConfig) ? commonConfig : null
 }
 
-const discoverRepository = (
-  repoPath: string,
-  skipped: ScanSkippedEntry[],
-): DiscoveredRepository | null | undefined => {
+const discoverRepository = (repoPath: string, skipped: ScanSkippedEntry[]): DiscoveredRepository | null | undefined => {
   let gitDirectoryResult: GitDirectoryResult
   try {
     gitDirectoryResult = readGitDirectory(repoPath)
@@ -149,8 +133,7 @@ const scanDirectory = (
     entries = fs.readdirSync(directoryPath, { withFileTypes: true })
   } catch (error) {
     const reason =
-      (error as NodeJS.ErrnoException).code === 'EACCES' ||
-      (error as NodeJS.ErrnoException).code === 'EPERM'
+      (error as NodeJS.ErrnoException).code === 'EACCES' || (error as NodeJS.ErrnoException).code === 'EPERM'
         ? 'permission_denied'
         : 'unknown_error'
     skipped.push({ path: directoryPath, reason })
