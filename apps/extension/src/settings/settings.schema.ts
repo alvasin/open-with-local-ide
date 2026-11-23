@@ -26,13 +26,10 @@ const repositoryScanFolderSchema = z.object({
   lastScannedAt: z.catch(z.optional(isoDate()), undefined),
 })
 
-const ideSettingsSchema = z.catch(
-  z.object({
-    selectedIde: z.catch(z.literal('vscode'), 'vscode'),
-    ideCommands: z.catch(z.object({ vscode: z.string() }), { vscode: 'code' }),
-  }),
-  { selectedIde: 'vscode', ideCommands: { vscode: 'code' } },
-)
+// The IDE executable is found by the native host, so only the IDE choice is stored.
+const ideSettingsSchema = z.catch(z.object({ selectedIde: z.catch(z.literal('vscode'), 'vscode') }), {
+  selectedIde: 'vscode',
+})
 
 export type RepositoryMapping = z.infer<typeof repositoryMappingSchema>
 export type RepositoryScanFolder = z.infer<typeof repositoryScanFolderSchema>
