@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
-import {
-  getManifestUninstallPath,
-  getManualUninstallInstructions,
-  uninstallNativeHost,
-} from './host-registration/uninstall.js'
+import { createPlatformHostRegistration } from './host-registration/platforms/index.js'
+import { uninstallNativeHost } from './host-registration/uninstall.js'
 import { HOST_NAME } from './host-registration/registration.constants.js'
 
 const printManualInstructions = (manualInstructions: string[]) => {
@@ -37,10 +34,10 @@ const main = () => {
       process.exitCode = 1
     }
   } catch (error) {
-    const manifestPath = getManifestUninstallPath()
+    const platform = createPlatformHostRegistration()
 
     console.error(error instanceof Error ? error.message : 'Native host uninstallation failed')
-    printManualInstructions(getManualUninstallInstructions(manifestPath))
+    printManualInstructions(platform.getManualUninstallInstructions(platform.getManifestInstallPath()))
     process.exitCode = 1
   }
 }

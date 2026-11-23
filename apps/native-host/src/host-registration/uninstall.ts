@@ -32,11 +32,6 @@ const removeManifest = (
   }
 }
 
-export const getManifestUninstallPath = (): string => createPlatformHostRegistration().getManifestInstallPath()
-
-export const getManualUninstallInstructions = (manifestPath: string): string[] =>
-  createPlatformHostRegistration().getManualUninstallInstructions(manifestPath)
-
 export const uninstallNativeHost = (): NativeHostUninstallResult => {
   const platformRegistration = createPlatformHostRegistration()
   const manifestPath = platformRegistration.getManifestInstallPath()

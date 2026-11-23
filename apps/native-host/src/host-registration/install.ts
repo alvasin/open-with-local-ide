@@ -24,11 +24,6 @@ const buildHostIfNeeded = (): string[] => {
   return []
 }
 
-export const getManifestInstallPath = (): string => createPlatformHostRegistration().getManifestInstallPath()
-
-export const getManualInstallInstructions = (manifestPath: string): string[] =>
-  createPlatformHostRegistration().getManualInstallInstructions(manifestPath)
-
 export const installNativeHost = (extensionId: string): NativeHostInstallResult => {
   if (!isExtensionId(extensionId)) {
     throw new Error('EXTENSION_ID must be a 32-character Chrome extension id.')

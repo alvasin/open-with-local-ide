@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { getManifestInstallPath, getManualInstallInstructions, installNativeHost } from './host-registration/install.js'
+import { installNativeHost } from './host-registration/install.js'
+import { createPlatformHostRegistration } from './host-registration/platforms/index.js'
 import { HOST_NAME } from './host-registration/registration.constants.js'
 
 const printUsage = () => {
@@ -39,10 +40,10 @@ const main = () => {
 
     if (result.warnings.length > 0) printManualInstructions(result.manualInstructions)
   } catch (error) {
-    const manifestPath = getManifestInstallPath()
+    const platform = createPlatformHostRegistration()
 
     console.error(error instanceof Error ? error.message : 'Native host installation failed')
-    printManualInstructions(getManualInstallInstructions(manifestPath))
+    printManualInstructions(platform.getManualInstallInstructions(platform.getManifestInstallPath()))
     process.exitCode = 1
   }
 }
